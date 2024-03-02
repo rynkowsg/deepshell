@@ -1,0 +1,12 @@
+{:paths ["main/src"]
+
+ :deps {;; sorted
+        babashka/fs {:mvn/version "0.2.12"}
+        babashka/process {:mvn/version "0.5.22"}
+        com.hyperfiddle/rcf {:mvn/version "20220926-202227"}
+        org.babashka/cli {:mvn/version "0.8.57"}
+        org.clojure/clojure {:mvn/version "1.11.1"}}
+
+ :aliases
+ {:repl {:extra-paths ["repl/src"]}
+  :test {:extra-paths ["test/src" "test/res"]}}}

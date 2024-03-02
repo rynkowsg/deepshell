@@ -1,0 +1,13 @@
+# JetBrains IDEs
+/.idea/*
+!/.idea/codeStyles/
+!/.idea/dictionaries/
+!/.idea/runConfigurations/
+/*.iml
+
+# MacOS
+.DS_Store
+
+# Clojure
+.cpcache
+.nrepl-port
