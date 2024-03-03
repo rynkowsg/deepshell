@@ -1,5 +1,6 @@
 # shellpack
 
+[![CircleCI Build Status][ci-build-badge]][ci-build]
 [![License][license-badge]][license]
 
 Bundle your shell scripts into one file.
@@ -38,5 +39,7 @@ Copyright © 2024 Greg Rynkowski
 
 Released under the [MIT license][license].
 
-[license]: https://raw.githubusercontent.com/rynkowsg/shellpack/main/LICENSE
+[ci-build-badge]: https://circleci.com/gh/rynkowsg/shellpack.svg?style=shield "CircleCI Build Status"
+[ci-build]: https://circleci.com/gh/rynkowsg/asdf-orb
 [license-badge]: https://img.shields.io/badge/license-MIT-lightgrey.svg
+[license]: https://raw.githubusercontent.com/rynkowsg/shellpack/main/LICENSE

@@ -1,0 +1,43 @@
+version: 2.1
+
+orbs:
+  asdf: rynkowsg/asdf@dev:48f9da265ad117c44c47456da5a782617a9a0682
+  checkout-orb: rynkowsg/checkout-orb@0.1.4
+
+executors:
+  docker_x86_cimg:
+    docker: [{image: cimg/base:2024.02}]
+    # https://circleci.com/developer/images/image/cimg/base
+    resource_class: small
+    # https://circleci.com/docs/configuration-reference/#docker-execution-environment
+
+jobs:
+  test:
+    executor: docker_x86_cimg
+    steps:
+      - checkout-orb/checkout: {depth: 1}
+      - asdf/install: {version: 0.14.0}
+      - run:
+          name: asdf - add plugin
+          command: |
+            set -x
+            cd /tmp
+            git config --global advice.detachedHead false
+            asdf plugin add babashka https://github.com/fredZen/asdf-babashka.git
+            asdf plugin add bats https://github.com/timgluz/asdf-bats.git
+            asdf plugin add java https://github.com/rynkowsg/asdf-java.git
+      - run:
+          name: asdf - install tools
+          command: |
+            set -x
+            asdf install
+            . ~/.asdf/plugins/java/set-java-home.bash
+            bats --version
+            bb --version
+            java --version
+      - run: make test
+
+workflows:
+  main:
+    jobs:
+      - test
