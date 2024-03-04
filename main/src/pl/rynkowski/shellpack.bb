@@ -46,11 +46,15 @@
   :tests)
 
 (defn process-file
-  [{:keys [line filename cwd top?] :or {top? true} :as opts}]
+  [{:keys [line parent-path filename cwd top?] :or {top? true} :as opts}]
   (let [cwd' (str cwd)
         path (str (if (fs/absolute? filename)
                     filename
                     (fs/absolutize (fs/path cwd' filename))))
+        _ (when (not (fs/exists? path))
+            (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist
+                                                   :path path
+                                                   :parent-path parent-path})))
         content (-> (slurp path)
                     (str/split-lines))
         result (->> content
@@ -61,7 +65,8 @@
                                       resolved-filepath (resolve-path {:filepath path
                                                                        :lines-read lines-read
                                                                        :path-in-code sourced-file})
-                                      composed (process-file {:line l
+                                      composed (process-file {:parent-path path
+                                                              :line l
                                                               :filename resolved-filepath
                                                               :cwd cwd'
                                                               :top? false})]
@@ -120,7 +125,15 @@
   [{:keys [fn dispatch opts]}]
   (let [defaults {:output @make-default-output}
         opts' (merge defaults opts)]
-    (process opts')))
+    (try
+      (process opts')
+      (catch Exception e
+        (let [{:keys [cause-kw path parent-path]} (ex-data e)]
+          (case cause-kw
+            :file-does-not-exist (do (println "ERROR")
+                                     (println "File does not exist:" path)
+                                     (println "Requested by:       " (if parent-path parent-path "input param")))
+            (throw e)))))))
 
 (defn cli-help
   [_]
