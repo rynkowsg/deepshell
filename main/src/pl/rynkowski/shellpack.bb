@@ -50,7 +50,8 @@
                     (str/split-lines))
         result (->> content
                     (map (fn [l]
-                           (if (str/starts-with? l "source")
+                           (if (or (str/starts-with? l "source ")
+                                   (str/starts-with? l ". "))
                              (let [[_ sourced-file] (str/split l #" ")
                                    resolved-filepath (evaluate-path {:source-script path :path-in-code sourced-file})]
                                (process-file {:line l
