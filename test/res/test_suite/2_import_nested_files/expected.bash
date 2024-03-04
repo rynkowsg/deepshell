@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck source=test/res/test_suite/2_import_nested_files/lib/lib1.bash
 # source ./lib/lib1.bash # BEGIN
 #!/usr/bin/env bash
 
+# shellcheck source=test/res/test_suite/2_import_nested_files/lib/internal/lib.bash
 # source ./lib/internal/lib.bash # BEGIN
 #!/usr/bin/env bash
 

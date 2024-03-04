@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck source=test/res/test_suite/1_import_two_files/lib/lib1.bash
 # source ./lib/lib1.bash # BEGIN
 #!/usr/bin/env bash
 
@@ -12,6 +13,7 @@ lib1_run_log2() {
 }
 # source ./lib/lib1.bash # END
 
+# shellcheck source=test/res/test_suite/1_import_two_files/lib/lib2.bash
 # source ./lib/lib2.bash # BEGIN
 #!/usr/bin/env bash
 

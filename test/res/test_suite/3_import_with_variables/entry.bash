@@ -2,7 +2,8 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source ${SCRIPT_DIR}/lib/lib1.bash
+# shellcheck source=test/res/test_suite/3_import_with_variables/lib/lib1.bash
+source "${SCRIPT_DIR}/lib/lib1.bash"
 
 echo "This is a sample script"
 
