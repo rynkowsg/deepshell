@@ -65,8 +65,9 @@
          (when line (format "# %s # END\n" line)))))
 
 (defn process
-  [{:keys [cwd entry output] :as opts :or {cwd (str (fs/cwd))}}]
-  (let [res (process-file {:filename entry :cwd cwd})]
+  [{:keys [cwd entry output] :or {cwd (str (fs/cwd))} :as opts}]
+  (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))
+        res (process-file {:filename entry :cwd cwd-absolute})]
     (fs/create-dirs (fs/parent output))
     (spit output res)
     res))
@@ -82,15 +83,60 @@
 
 ;; ---------- MAIN --------------------
 
-(def cli-options {:cwd {:coerce :string}
-                  :entry {:coerce :string}
-                  :output {:coerce :string}
-                  :help {:coerce :boolean}})
+(def ^:private make-default-output
+  (delay (str (fs/path (fs/cwd) "bundle.bash"))))
 
-(defn -main [& _args]
-  (let [opts (cli/parse-opts *command-line-args* {:spec cli-options})]
-    (prn opts)
-    (process opts)))
+(def cli-pack-opts
+  (delay {:spec {:cwd {:alias :c
+                       :coerce :string
+                       :default (str (fs/cwd))
+                       :desc "Sets the working directory"
+                       :ref "<path>"}
+                 :entry {:alias :i
+                         :coerce :string
+                         :desc "Entry point to the script being processed."
+                         :ref "<path>"
+                         :require true}
+                 :output {:alias :o
+                          :coerce :string
+                          :default @make-default-output
+                          :desc "Output path"
+                          :ref "<path>"}
+                 :help {:alias :h
+                        :coerce :boolean
+                        :desc "Shows this message"}}}))
+
+(defn cli-process
+  [{:keys [fn dispatch opts]}]
+  (let [defaults {:output @make-default-output}
+        opts' (merge defaults opts)]
+    (process opts')))
+
+(defn cli-help
+  [_]
+  (println
+    (str "pack\n"
+         (cli/format-table
+           {:rows (concat [["alias" "option" "ref" "default" "description"]]
+                          (cli/opts->table @cli-pack-opts))
+            :indent 0}))))
+
+(def cli-table
+  (delay [{:cmds ["pack"] :fn cli-process :spec (:spec @cli-pack-opts) :args->opts [:entry]}
+          {:cmds [] :fn cli-help}]))
+
+(defn -main [& args]
+  (cli/dispatch @cli-table args {:error-fn
+                                 (fn [{:keys [_spec type cause msg option] :as _data}]
+                                   (if (= :org.babashka/cli type)
+                                     (case cause
+                                       :require
+                                       (do (println (format "Missing required argument: %s\n" option))
+                                           (cli-help nil)
+                                           (System/exit 1))
+                                       :validate
+                                       (println
+                                         (format "%s does not exist!\n" msg)))))}))
 
 (when (= *file* (System/getProperty "babashka.file"))
   (apply -main *command-line-args*))

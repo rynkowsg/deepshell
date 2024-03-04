@@ -30,7 +30,9 @@ The line above installs the script in `~/.bin`. That installation directory need
 ## Usage
 
 ```sh
-shellpack --entry script.bash --output gen/script.bash
+shellpack pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundled.bash
+
+shellpack pack -c ./test/res/test_suite/2_import_nested_files -i ./entry.bash -o ./bundled.bash
 ```
 
 ## License
