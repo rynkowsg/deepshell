@@ -45,7 +45,7 @@
   (str (fs/normalize (fs/path (fs/cwd) "./test/res/test_suite/3_import_with_variables/lib/lib1.bash")))
   :tests)
 
-(defn process-file
+(defn process-pack-file
   [{:keys [line parent-path filename cwd top?] :or {top? true} :as opts}]
   (let [cwd' (str cwd)
         path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
@@ -62,11 +62,11 @@
                                       resolved-filepath (resolve-path {:filepath path
                                                                        :lines-read lines-read
                                                                        :path-in-code sourced-file})
-                                      composed (process-file {:parent-path path
-                                                              :line l
-                                                              :filename resolved-filepath
-                                                              :cwd cwd'
-                                                              :top? false})]
+                                      composed (process-pack-file {:parent-path path
+                                                                   :line l
+                                                                   :filename resolved-filepath
+                                                                   :cwd cwd'
+                                                                   :top? false})]
                                   (conj lines-read composed))
                                 (conj lines-read l)))
                             [])
@@ -76,10 +76,10 @@
          "\n"
          (when line (format "# %s # END\n" line)))))
 
-(defn process
+(defn process-pack
   [{:keys [cwd entry output] :or {cwd (str (fs/cwd))} :as opts}]
   (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))
-        res (process-file {:filename entry :cwd cwd-absolute})]
+        res (process-pack-file {:filename entry :cwd cwd-absolute})]
     (fs/create-dirs (fs/parent output))
     (spit output res)
     res))
@@ -89,7 +89,7 @@
   (def test-case "./test/res/test_suite/1_import_two_files")
   (def test-case "./test/res/test_suite/2_import_nested_files")
   (def test-case "./test/res/test_suite/3_import_with_variables")
-  (process {:cwd test-case :entry "entry.bash" :output (str test-case "/output.bash")})
+  (process-pack {:cwd test-case :entry "entry.bash" :output (str test-case "/output.bash")})
   (slurp (str test-case "/output.bash")) := (slurp (str test-case "/expected.bash"))
   :tests-end)
 
@@ -118,12 +118,12 @@
                         :coerce :boolean
                         :desc "Shows this message"}}}))
 
-(defn cli-process
+(defn cli-pack
   [{:keys [fn dispatch opts]}]
   (let [defaults {:output @make-default-output}
         opts' (merge defaults opts)]
     (try
-      (process opts')
+      (process-pack opts')
       (catch Exception e
         (let [{:keys [cause-kw path parent-path]} (ex-data e)]
           (case cause-kw
@@ -142,7 +142,7 @@
             :indent 0}))))
 
 (def cli-table
-  (delay [{:cmds ["pack"] :fn cli-process :spec (:spec @cli-pack-opts) :args->opts [:entry]}
+  (delay [{:cmds ["pack"] :fn cli-pack :spec (:spec @cli-pack-opts) :args->opts [:entry]}
           {:cmds [] :fn cli-help}]))
 
 (defn -main [& args]

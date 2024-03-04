@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Shell test-2" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="./main/src/pl/rynkowski/shellpack.bb pack --cwd ./test/res/test_suite/2_import_nested_files -i ./entry.bash -o ./test/res/test_suite/2_import_nested_files/output.bash" />
+  <configuration default="false" name="Run pack test-0" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="./main/src/pl/rynkowski/shellpack.bb pack -i ./test/res/test_suite/0_nothing/entry.bash -o ./test/res/test_suite/0_nothing/output.bash" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
