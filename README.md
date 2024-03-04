@@ -20,7 +20,7 @@ I'm talking about the stuff we use all the time, like logging, handling errors, 
 ## Install
 
 ```sh
-curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/main/src/pl/rynkowski/shellpack.bb -O ~/.bin/shellpack
+curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/main/src/pl/rynkowski/shellpack.cljc -O ~/.bin/shellpack
 ```
 The line above installs the script in `~/.bin`. That installation directory needs to be added to `PATH`.
 
@@ -29,9 +29,19 @@ The line above installs the script in `~/.bin`. That installation directory need
 
 ## Usage
 
+**FETCH**
+
 ```sh
+shellpack fetch ./test/res/test_suite/4_import_remote/entry.bash
+```
+
+**PACK**
+
+```sh
+# pack the script on input to the path on output
 shellpack pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundled.bash
 
+# optionally you can set current working directory (useful if the entry script doesn't use absolute path for sourced files)
 shellpack pack -c ./test/res/test_suite/2_import_nested_files -i ./entry.bash -o ./bundled.bash
 ```
 

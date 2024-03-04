@@ -7,7 +7,7 @@ REPO_DIR="$(cd "${TEST_DIR}/../.." || exit 1; pwd -P)"
 
 test_composed_as_expected() {
   local name=$1
-  (cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; "${REPO_DIR}/main/src/pl/rynkowski/shellpack.bb" pack --cwd "${REPO_DIR}/test/res/test_suite/${name}" --entry "${REPO_DIR}/test/res/test_suite/${name}/entry.bash" --output "${REPO_DIR}/test/res/test_suite/${name}/output.bash")
+  (cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" pack --cwd "${REPO_DIR}/test/res/test_suite/${name}" --entry "${REPO_DIR}/test/res/test_suite/${name}/entry.bash" --output "${REPO_DIR}/test/res/test_suite/${name}/output.bash")
   local output_value expected_value
   output_value="$(cat "${REPO_DIR}/test/res/test_suite/${name}/output.bash")"
   expected_value="$(cat "${REPO_DIR}/test/res/test_suite/${name}/expected.bash")"
@@ -16,7 +16,7 @@ test_composed_as_expected() {
 
 test_compare_results() {
   local name=$1
-  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.bb" pack --cwd "${REPO_DIR}/test/res/test_suite/${name}" --entry "${REPO_DIR}/test/res/test_suite/${name}/entry.bash" --output "${REPO_DIR}/test/res/test_suite/${name}/output.bash"
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" pack --cwd "${REPO_DIR}/test/res/test_suite/${name}" --entry "${REPO_DIR}/test/res/test_suite/${name}/entry.bash" --output "${REPO_DIR}/test/res/test_suite/${name}/output.bash"
   local res_entry res_bundled res_entry_status res_bundled_status
   res_entry="$(cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; bash "entry.bash")"
   res_entry_status=$?
@@ -56,4 +56,28 @@ test_compare_results() {
 
 @test "3_import_with_variables - compare_results" {
   test_compare_results "3_import_with_variables"
+}
+
+@test "4_import_remote - composed_as_expected" {
+  # given
+  local name="4_import_remote"
+  rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
+  # when
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch "${REPO_DIR}/test/res/test_suite/${name}/entry.bash"
+  # then
+  test_composed_as_expected "4_import_remote"
+  # cleanup
+  rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
+}
+
+@test "4_import_remote - compare_results" {
+  # given
+  local name="4_import_remote"
+  rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
+  # when
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch "${REPO_DIR}/test/res/test_suite/${name}/entry.bash"
+  # then
+  test_compare_results "4_import_remote"
+  # cleanup
+  rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
 }

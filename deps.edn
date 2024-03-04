@@ -3,14 +3,20 @@
  :deps {;; sorted
         babashka/fs {:mvn/version "0.5.20"}
         babashka/process {:mvn/version "0.5.22"}
-        com.hyperfiddle/rcf {:mvn/version "20220926-202227"}
         org.babashka/cli {:mvn/version "0.8.57"}
-        org.clojure/clojure {:mvn/version "1.11.1"}}
+        org.clojure/clojure {:mvn/version "1.11.1"}
+        pl.rynkowski.clj-gr/lang {:git/url "https://github.com/rynkowsg/clj-gr.git" :git/sha "5ee201de40df7b07b8979adab9cfdbcb1d8bf9e6" :deps/root "lib/lang"}
+        #_:deps}
 
  :aliases
  {:repl {:extra-paths ["repl/src"]}
 
-  :test {:extra-paths ["test/src" "test/res"]}
+  :test {:extra-paths ["test/src" "test/res"]
+         :extra-deps {;; sorted
+                      io.github.matthewdowney/rich-comment-tests {:git/tag "v1.0.3" :git/sha "a8711e9"}
+                      lambdaisland/kaocha {:mvn/version "1.87.1366"}
+                      lambdaisland/kaocha-cloverage {:mvn/version "1.1.89"}
+                      #_:extra-deps}}
 
   :tool/antq
   {:replace-paths []

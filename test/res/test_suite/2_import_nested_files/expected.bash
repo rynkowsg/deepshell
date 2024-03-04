@@ -13,13 +13,11 @@ internal_lib_log() {
 }
 # source ./lib/internal/lib.bash # END
 
-
 lib1_run_log() {
   internal_lib_log
   echo "Some log from lib1 - 1"
 }
 # source ./lib/lib1.bash # END
-
 
 echo "This is a sample script"
 

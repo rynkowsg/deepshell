@@ -15,7 +15,6 @@ lib1_run_log2() {
 }
 # source "${SCRIPT_DIR}/lib/lib1.bash" # END
 
-
 echo "This is a sample script"
 
 echo "There is nothing, only these two logs."

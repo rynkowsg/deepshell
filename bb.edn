@@ -1,7 +1,16 @@
-{:tasks
+{:deps {this {:local/root "."}}
+
+ :tasks
  {deps (print-exec '(clojure "-M:tool/antq -m antq.core") *command-line-args*)
   deps:upgrade (shell "bb deps --upgrade")
 
   lint (shell "@bin/lint.bash")
 
-  test:bash (shell "bats ./test/src/test.bats")}}
+  test {:depends [test:bash test:bb test:clj]}
+  test:bash (shell "bats ./test/src/test.bats")
+
+  test:bb {:task (let [test-deps {:deps (-> (slurp "deps.edn") read-string :aliases :test :extra-deps)}]
+                   (println test-deps)
+                   (shell (format "bb -Sdeps '%s' -m kaocha.runner/-main --config-file tests.edn" test-deps)))}
+  test:clj (clojure "-M:test -m kaocha.runner --config-file tests.edn")
+  #_:tasks}}
