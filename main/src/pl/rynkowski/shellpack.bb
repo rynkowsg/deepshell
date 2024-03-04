@@ -2,7 +2,7 @@
 
 #?(:bb (do (require '[babashka.deps])
            (babashka.deps/add-deps '{:deps {;; sorted
-                                            babashka/fs {:mvn/version "0.2.12"}
+                                            babashka/fs {:mvn/version "0.5.20"}
                                             babashka/process {:mvn/version "0.5.22"}
                                             com.hyperfiddle/rcf {:mvn/version "20220926-202227"}
                                             org.babashka/cli {:mvn/version "0.8.57"}
