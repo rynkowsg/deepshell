@@ -48,9 +48,7 @@
 (defn process-file
   [{:keys [line parent-path filename cwd top?] :or {top? true} :as opts}]
   (let [cwd' (str cwd)
-        path (str (if (fs/absolute? filename)
-                    filename
-                    (fs/absolutize (fs/path cwd' filename))))
+        path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
         _ (when (not (fs/exists? path))
             (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist
                                                    :path path
@@ -59,8 +57,7 @@
                     (str/split-lines))
         result (->> content
                     (reduce (fn [lines-read l]
-                              (if (or (str/starts-with? l "source ")
-                                      (str/starts-with? l ". "))
+                              (if (or (str/starts-with? l "source ") (str/starts-with? l ". "))
                                 (let [[_ sourced-file] (str/split l #" ")
                                       resolved-filepath (resolve-path {:filepath path
                                                                        :lines-read lines-read
@@ -105,7 +102,7 @@
   (delay {:spec {:cwd {:alias :c
                        :coerce :string
                        :default (str (fs/cwd))
-                       :desc "Sets the working directory"
+                       :desc "Sets the working directory. Defaults to current directory."
                        :ref "<path>"}
                  :entry {:alias :i
                          :coerce :string
