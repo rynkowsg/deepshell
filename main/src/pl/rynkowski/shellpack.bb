@@ -18,47 +18,56 @@
 
 ;; ---------- CORE --------------------
 
-(defn evaluate-path
-  [{:keys [source-script path-in-code] :as opts}]
-  (let [cmd (-> (str/join "" ["bash -c '"
-                              "if [ -f \"%s\" ]; then "
+(defn resolve-path
+  [{:keys [lines-read filepath path-in-code] :as opts}]
+  (let [temp-file (doto (str (fs/create-temp-file {:dir (fs/parent filepath)
+                                                   :prefix (format "%s." (fs/file-name filepath))}))
+                        (spit (str/join "\n" lines-read)))
+        cmd (-> (str/join "" ["bash -c '"
                               "source %s >/dev/null; "
-                              "else "
-                              "exit 54; "
-                              "fi; "
                               "printf \"%%s\" %s"
                               "'"])
-                (format source-script source-script path-in-code))
+                (format temp-file path-in-code))
         {:keys [exit out] :as res} (shell {:out :string} cmd)]
+    (fs/delete temp-file)
     (if (= exit 0)
       out
       (throw (ex-info "path resolution failed" {:opts opts :res res})))))
 
 (tests
   "the path SCRIPT_DIR should match the path where the script is"
-  (evaluate-path {:source-script "./test/res/test_suite/3_import_with_variables/entry.bash"
-                  :path-in-code "${SCRIPT_DIR}/lib/lib1.bash"}) :=
+  (resolve-path {:filepath (str (fs/absolutize "./test/res/test_suite/3_import_with_variables/entry.bash"))
+                 :lines-read ["#!/usr/bin/env bash"
+                              ""
+                              "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\""
+                              ""]
+                 :path-in-code "${SCRIPT_DIR}/lib/lib1.bash"}) :=
   (str (fs/normalize (fs/path (fs/cwd) "./test/res/test_suite/3_import_with_variables/lib/lib1.bash")))
   :tests)
 
 (defn process-file
   [{:keys [line filename cwd top?] :or {top? true} :as opts}]
-  (let [path (str (if (fs/absolute? filename)
+  (let [cwd' (str cwd)
+        path (str (if (fs/absolute? filename)
                     filename
-                    (fs/absolutize (fs/path cwd filename))))
+                    (fs/absolutize (fs/path cwd' filename))))
         content (-> (slurp path)
                     (str/split-lines))
         result (->> content
-                    (map (fn [l]
-                           (if (or (str/starts-with? l "source ")
-                                   (str/starts-with? l ". "))
-                             (let [[_ sourced-file] (str/split l #" ")
-                                   resolved-filepath (evaluate-path {:source-script path :path-in-code sourced-file})]
-                               (process-file {:line l
-                                              :filename resolved-filepath
-                                              :cwd cwd
-                                              :top? false}))
-                             l)))
+                    (reduce (fn [lines-read l]
+                              (if (or (str/starts-with? l "source ")
+                                      (str/starts-with? l ". "))
+                                (let [[_ sourced-file] (str/split l #" ")
+                                      resolved-filepath (resolve-path {:filepath path
+                                                                       :lines-read lines-read
+                                                                       :path-in-code sourced-file})
+                                      composed (process-file {:line l
+                                                              :filename resolved-filepath
+                                                              :cwd cwd'
+                                                              :top? false})]
+                                  (conj lines-read composed))
+                                (conj lines-read l)))
+                            [])
                     (str/join "\n"))]
     (str (when line (format "# %s # BEGIN\n" line))
          result
