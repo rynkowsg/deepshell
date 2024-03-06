@@ -3,9 +3,11 @@
 [![CircleCI Build Status][ci-build-badge]][ci-build]
 [![License][license-badge]][license]
 
-Bundle your shell scripts into one file.
+Two pillars:
+- `source` bash files from remote locations like GitHub, and
+- bundle your shell scripts into one file.
 
-Status: pre-ALPHA
+Status: **ALPHA**
 
 ## Motivation
 
@@ -20,7 +22,8 @@ I'm talking about the stuff we use all the time, like logging, handling errors, 
 ## Install
 
 ```sh
-curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/main/src/pl/rynkowski/shellpack.cljc -O ~/.bin/shellpack
+curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/main/main/src/pl/rynkowski/shellpack.cljc -o ~/.bin/shellpack
+chmod +x ~/.bin/shellpack
 ```
 The line above installs the script in `~/.bin`. That installation directory needs to be added to `PATH`.
 
