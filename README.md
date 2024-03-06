@@ -42,6 +42,6 @@ Copyright © 2024 Greg Rynkowski
 Released under the [MIT license][license].
 
 [ci-build-badge]: https://circleci.com/gh/rynkowsg/shellpack.svg?style=shield "CircleCI Build Status"
-[ci-build]: https://circleci.com/gh/rynkowsg/asdf-orb
+[ci-build]: https://circleci.com/gh/rynkowsg/shellpack
 [license-badge]: https://img.shields.io/badge/license-MIT-lightgrey.svg
 [license]: https://raw.githubusercontent.com/rynkowsg/shellpack/main/LICENSE

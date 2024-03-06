@@ -48,8 +48,8 @@ jobs:
             - ~/.asdf/installs
             - ~/.asdf/plugins
             - ~/.asdf/shims
-      - run: make lint
-      - run: make test
+      - run: bb lint
+      - run: bb test
 
 workflows:
   main:

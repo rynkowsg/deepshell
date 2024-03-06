@@ -1,1 +1,7 @@
-{}
+{:tasks
+ {deps (print-exec '(clojure "-M:tool/antq -m antq.core") *command-line-args*)
+  deps:upgrade (shell "bb deps --upgrade")
+
+  lint (shell "@bin/lint.bash")
+
+  test:bash (shell "bats ./test/src/test.bats")}}

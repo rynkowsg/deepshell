@@ -9,7 +9,7 @@
     <setting name="replPortFileType" value="STANDARD" />
     <setting name="customPortFile" value="" />
     <setting name="fixLineNumbers" value="false" />
-    <setting name="focusEditor" value="false" />
+    <setting name="focusEditor" value="true" />
     <method v="2" />
   </configuration>
 </component>
