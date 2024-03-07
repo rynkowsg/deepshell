@@ -3,6 +3,7 @@
  :deps {;; sorted
         babashka/fs {:mvn/version "0.5.20"}
         babashka/process {:mvn/version "0.5.22"}
+        http-kit/http-kit {:mvn/version "2.7.0"}
         org.babashka/cli {:mvn/version "0.8.57"}
         org.clojure/clojure {:mvn/version "1.11.1"}
         pl.rynkowski.clj-gr/lang {:git/url "https://github.com/rynkowsg/clj-gr.git" :git/sha "5ee201de40df7b07b8979adab9cfdbcb1d8bf9e6" :deps/root "lib/lang"}

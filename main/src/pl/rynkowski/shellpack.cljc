@@ -4,6 +4,7 @@
            (babashka.deps/add-deps '{:deps {;; sorted
                                             babashka/fs {:mvn/version "0.5.20"}
                                             babashka/process {:mvn/version "0.5.22"}
+                                            http-kit/http-kit {:mvn/version "2.7.0"}
                                             org.babashka/cli {:mvn/version "0.8.57"}
                                             org.clojure/clojure {:mvn/version "1.11.1"}
                                             pl.rynkowski.clj-gr/lang {:git/url "https://github.com/rynkowsg/clj-gr.git" :git/sha "5ee201de40df7b07b8979adab9cfdbcb1d8bf9e6" :deps/root "lib/lang"}
@@ -14,8 +15,9 @@
     [babashka.cli :as cli]
     [babashka.fs :as fs]
     [babashka.process :refer [shell]]
-    [clojure.java.io :as io]
+    [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
+    [org.httpkit.client :as hk-client]
     [pl.rynkowski.clj-gr.lang.coll :refer [some-insight]]
     [pl.rynkowski.clj-gr.lang.map :refer [vals->keys]]
     [pl.rynkowski.clj-gr.lang.regex :refer [named-groups]])
@@ -84,20 +86,24 @@
 
 (defn download-file [url path]
   (println "downloading:" url "->" path)
-  (fs/create-dirs (fs/parent path))
-  (fs/create-file path)
-  (with-open [in-stream (io/input-stream (URL. url))
-              out-stream (io/output-stream path)]
-    (io/copy in-stream out-stream)))
+  (let [{:keys [body status] :as _res} @(hk-client/request {:method :get :url url})]
+    (if (= status 200)
+      (do (fs/create-dirs (fs/parent path))
+          (fs/create-file path)
+          (spit path body))
+      (throw (ex-info "remote file not available" {:cause-kw :remote-file-not-available :url url :path path})))))
 
 (defn process-fetch-file
-  [{:keys [parent-path filename cwd top?] :or {top? true} :as opts}]
+  [{:keys [debug? parent-path filename cwd top?] :or {top? true} :as opts}]
+  (when debug? (println {:fn :process-fetch-file :opts opts}))
   (let [cwd' (str cwd)
         path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
-        _ (when (not (fs/exists? path))
-            (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist
-                                                   :path path
-                                                   :parent-path parent-path})))
+        _ (if (fs/exists? path)
+            (when debug? (println {:fn :process-fetch-file :msg :file-exists :path path}))
+            (throw (ex-info "file under processing does not exist" {:cause-kw :file-under-processing-does-not-exist
+                                                                    :path path
+                                                                    :cwd cwd'
+                                                                    :parent-path parent-path})))
         content (-> (slurp path)
                     (str/split-lines))]
     (->> content
@@ -108,11 +114,18 @@
                            resolved-filepath (resolve-path {:filepath path
                                                             :lines-read lines-read
                                                             :path-in-code sourced-file})
+                           _ (when debug? (println {:fn :process-fetch-file :resolved-filepath resolved-filepath}))
                            {:keys [path url]} (assess-source-path resolved-filepath)]
-                       (if (some-> path fs/exists?)
-                         (println "File already exists:" path)
-                         (download-file url path))
-                       (let [sourced-file-lines (process-fetch-file {:parent-path path
+                       (let [exists? (some-> path fs/exists?)]
+                         (cond
+                           (and (some? url) (not exists?)) (download-file url path)
+                           exists? (println "File already exists:" path)
+                           (not exists?) (do (println "File doesn't exist")
+                                             (throw (ex-info "source local file does not exist" {:cause-kw :source-local-file-does-not-exist
+                                                                                                 :path path
+                                                                                                 :cwd cwd'
+                                                                                                 :parent-path parent-path})))))
+                       (let [sourced-file-lines (process-fetch-file {:parent-path (str (fs/parent path))
                                                                      :filename resolved-filepath
                                                                      :cwd cwd'
                                                                      :top? false})]
@@ -122,9 +135,9 @@
                  []))))
 
 (defn process-fetch
-  [{:keys [cwd entry] :or {cwd (str (fs/cwd))} :as opts}]
+  [{:keys [debug? cwd entry] :or {cwd (str (fs/cwd))} :as opts}]
   (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))]
-    (process-fetch-file {:filename entry :cwd cwd-absolute})))
+    (process-fetch-file {:debug? debug? :filename entry :cwd cwd-absolute :parent-path (str (fs/parent entry))})))
 
 (comment
   (def test-case "./test/res/test_suite/3_import_with_variables")
@@ -134,7 +147,8 @@
   :comment)
 
 (defn process-pack-file
-  [{:keys [line parent-path filename cwd top?] :or {top? true} :as opts}]
+  [{:keys [debug? line parent-path filename cwd top?] :or {top? true} :as opts}]
+  (when debug? (println {:fn :process-pack-file :cwd cwd :filename filename}))
   (let [cwd' (str cwd)
         path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
         _ (when (not (fs/exists? path))
@@ -194,6 +208,9 @@
                          :desc "Entry point to the script being processed."
                          :ref "<path>"
                          :require true}
+                 :debug? {:alias :d
+                          :coerce :boolean
+                          :desc "Shows debug logs"}
                  :help {:alias :h
                         :coerce :boolean
                         :desc "Shows this message"}}}))
@@ -205,11 +222,22 @@
     (try
       (process-fetch opts')
       (catch Exception e
-        (let [{:keys [cause-kw path parent-path]} (ex-data e)]
+        (let [{:keys [cause-kw path parent-path] :as data} (ex-data e)]
           (case cause-kw
-            :file-does-not-exist (do (println "ERROR")
-                                     (println "File does not exist:" path)
-                                     (println "Requested by:       " (if parent-path parent-path "input param")))
+            :file-under-processing-does-not-exist (do (println "ERROR")
+                                                      (println "File does not exist:" path)
+                                                      (println "Requested by:       " (if parent-path parent-path "input param"))
+                                                      (System/exit 11))
+            :source-local-file-does-not-exist (do (println "File does not exist:" path)
+                                                  (println "Requested by:       " (if parent-path parent-path "input param"))
+                                                  (System/exit 12))
+            :remote-file-not-available (do (println "ERROR")
+                                           (println "Remote file does not exist")
+                                           (pprint (dissoc data :cause-kw))
+                                           (System/exit 13))
+            :file-does-not-exist (do (println "File does not exist:" path)
+                                     (println "Requested by:       " (if parent-path parent-path "input param"))
+                                     (System/exit 1))
             (throw e)))))))
 
 (def ^:private make-default-output
@@ -231,6 +259,10 @@
                           :default @make-default-output
                           :desc "Output path"
                           :ref "<path>"}
+                 :debug? {:alias :d
+                          :coerce :boolean
+                          :default false
+                          :desc "Shows debug logs"}
                  :help {:alias :h
                         :coerce :boolean
                         :desc "Shows this message"}}}))
