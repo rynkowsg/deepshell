@@ -26,10 +26,17 @@
 
 ;; ---------- CORE --------------------
 
+;(defn- log [& data]
+;  (spit "/tmp/debug-log.txt" (apply str (conj data "\n")) :append true))
+
+(defn- log [& data]
+  (apply println data))
+
 (defn resolve-path
-  [{:keys [lines-read filepath path-in-code] :as opts}]
-  (let [temp-file (doto (str (fs/create-temp-file {:dir (fs/parent filepath)
-                                                   :prefix (format "%s." (fs/file-name filepath))}))
+  [{:keys [debug? lines-read script-path path-in-code] :as opts}]
+  (when debug? (log {:fn :resolve-path :opts (dissoc opts :lines-read)}))
+  (let [temp-file (doto (str (fs/create-temp-file {:dir (fs/parent script-path)
+                                                   :prefix (format "%s.%s." (fs/file-name script-path) (str (System/currentTimeMillis)))}))
                         (spit (str/join "\n" lines-read)))
         cmd (-> (str/join "" ["bash -c '"
                               "source %s >/dev/null; "
@@ -45,7 +52,7 @@
 ^:rct/test
 (comment #_((requiring-resolve 'com.mjdowney.rich-comment-tests/run-ns-tests!) *ns*)
   "the path SCRIPT_DIR should match the path where the script is"
-  (resolve-path {:filepath (str (fs/absolutize "./test/res/test_suite/3_import_with_variables/entry.bash"))
+  (resolve-path {:script-path (str (fs/absolutize "./test/res/test_suite/3_import_with_variables/entry.bash"))
                  :lines-read ["#!/usr/bin/env bash"
                               "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\""]
                  :path-in-code "${SCRIPT_DIR}/lib/lib1.bash"})
@@ -84,9 +91,11 @@
   ;=> {:path "./lib/@github/rynkowsg/shell-gr/lib/trap.bash" :url "https://raw.githubusercontent.com/rynkowsg/shell-gr/HEAD/lib/trap.bash"}
   :comment)
 
-(defn download-file [url path]
-  (println "downloading:" url "->" path)
+(defn download-file
+  [{:keys [debug? url path] :as params}]
+  (when debug? (log {:fn :download-file :msg :enter :params params}))
   (let [{:keys [body status] :as _res} @(hk-client/request {:method :get :url url})]
+    (println url)
     (if (= status 200)
       (do (fs/create-dirs (fs/parent path))
           (fs/create-file path)
@@ -94,50 +103,62 @@
       (throw (ex-info "remote file not available" {:cause-kw :remote-file-not-available :url url :path path})))))
 
 (defn process-fetch-file
-  [{:keys [debug? parent-path filename cwd top?] :or {top? true} :as opts}]
-  (when debug? (println {:fn :process-fetch-file :opts opts}))
-  (let [cwd' (str cwd)
-        path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
-        _ (if (fs/exists? path)
-            (when debug? (println {:fn :process-fetch-file :msg :file-exists :path path}))
-            (throw (ex-info "file under processing does not exist" {:cause-kw :file-under-processing-does-not-exist
-                                                                    :path path
-                                                                    :cwd cwd'
-                                                                    :parent-path parent-path})))
-        content (-> (slurp path)
-                    (str/split-lines))]
-    (->> content
-         (reduce (fn [lines-read l]
-                   (if (or (str/starts-with? l "source ") (str/starts-with? l ". "))
-                     ;; if source, download if necessary and go deeper
-                     (let [[_ sourced-file] (str/split l #" ")
-                           resolved-filepath (resolve-path {:filepath path
-                                                            :lines-read lines-read
-                                                            :path-in-code sourced-file})
-                           _ (when debug? (println {:fn :process-fetch-file :resolved-filepath resolved-filepath}))
-                           {:keys [path url]} (assess-source-path resolved-filepath)]
-                       (let [exists? (some-> path fs/exists?)]
-                         (cond
-                           (and (some? url) (not exists?)) (download-file url path)
-                           exists? (println "File already exists:" path)
-                           (not exists?) (do (println "File doesn't exist")
-                                             (throw (ex-info "source local file does not exist" {:cause-kw :source-local-file-does-not-exist
-                                                                                                 :path path
-                                                                                                 :cwd cwd'
-                                                                                                 :parent-path parent-path})))))
-                       (let [sourced-file-lines (process-fetch-file {:parent-path (str (fs/parent path))
-                                                                     :filename resolved-filepath
-                                                                     :cwd cwd'
-                                                                     :top? false})]
-                         (into lines-read sourced-file-lines)))
-                     ;; otherwise just add a line
-                     (conj lines-read l)))
-                 []))))
+  [{:keys [debug? lines-read-before path chain cwd] :or {lines-read-before []} :as opts}]
+  (when debug? (log {:fn :process-fetch-file :msg :enter :opts (dissoc opts :lines-read-before)}))
+  (let [content (-> (slurp path)
+                    (str/split-lines))
+        res (->> content
+                 (reduce (fn [lines-read l]
+                           (if (not (or (str/starts-with? l "source ") (str/starts-with? l ". ")))
+                             ;; if not a source line, just add a line
+                             (conj (vec lines-read) l)
+                             ;; if source, download if necessary and go deeper
+                             (let [[_ file-to-source] (str/split l #" ")
+                                   ;; resolve variable within path by evaluating everything read until this point
+                                   resolved-source-path (resolve-path {:debug? debug?
+                                                                       :lines-read lines-read
+                                                                       :path-in-code file-to-source
+                                                                       :script-path path})
+                                   _ (when debug? (log {:fn :process-fetch-file :msg :resolved-source-path :resolved resolved-source-path}))
+                                   ;; normalize the path
+                                   normalized-source-path (str (if (fs/absolute? resolved-source-path) resolved-source-path (fs/normalize (fs/path cwd resolved-source-path))))
+                                   _ (when debug? (log {:fn :process-fetch-file :msg :normalized-source-path :data normalized-source-path}))
+                                   ;; assess whether it is a downloadable source path
+                                   {url :url assessed-path :path :as assessed} (assess-source-path normalized-source-path)
+                                   _ (when debug? (log {:fn :process-fetch-file :msg :assessed-source-path :data assessed}))
+                                   exists? (some-> assessed-path fs/exists?)
+                                   ;; download
+                                   _ (cond
+                                       (and (some? url) (not exists?)) (download-file {:debug? debug? :path assessed-path :url url})
+                                       exists? (when debug? (log {:fn :process-fetch-file :msg :source-file-exists :path assessed-path}))
+                                       (not exists?) (throw (ex-info "source local file does not exist" {:cause-kw :source-local-file-does-not-exist
+                                                                                                         :path assessed-path
+                                                                                                         :chain chain
+                                                                                                         :cwd cwd})))
+                                   lines (process-fetch-file {:debug? debug?
+                                                              :lines-read-before lines-read
+                                                              :path assessed-path
+                                                              :chain (conj chain assessed-path)
+                                                              :cwd cwd})]
+                               lines))
+                           #_:fn)
+                         lines-read-before))]
+    res)
+  #_:process-fetch-file)
 
 (defn process-fetch
   [{:keys [debug? cwd entry] :or {cwd (str (fs/cwd))} :as opts}]
-  (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))]
-    (process-fetch-file {:debug? debug? :filename entry :cwd cwd-absolute :parent-path (str (fs/parent entry))})))
+  (when debug? (log {:fn :process-fetch :msg :enter :opts opts}))
+  (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))
+        path (str (if (fs/absolute? entry) entry (fs/absolutize (fs/path cwd entry))))
+        _ (if (fs/exists? path)
+            (when debug? (log {:fn :process-pack :msg :file-exists :path path}))
+            (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist :path path})))]
+    (process-fetch-file {:debug? debug?
+                         :path path
+                         :cwd cwd-absolute
+                         :chain [path]
+                         :lines-read-before []})))
 
 (comment
   (def test-case "./test/res/test_suite/3_import_with_variables")
@@ -147,44 +168,66 @@
   :comment)
 
 (defn process-pack-file
-  [{:keys [debug? line parent-path filename cwd top?] :or {top? true} :as opts}]
-  (when debug? (println {:fn :process-pack-file :cwd cwd :filename filename}))
-  (let [cwd' (str cwd)
-        path (str (if (fs/absolute? filename) filename (fs/absolutize (fs/path cwd' filename))))
-        _ (when (not (fs/exists? path))
-            (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist
-                                                   :path path
-                                                   :parent-path parent-path})))
-        content (-> (slurp path)
+  [{:keys [debug? lines-read-before line path chain cwd top?] :as opts}]
+  (when debug? (log {:fn :process-pack-file :opts (dissoc opts :lines-read-before)}))
+  (let [content (-> (slurp path)
                     (str/split-lines))
-        result (->> content
-                    (reduce (fn [lines-read l]
-                              (if (or (str/starts-with? l "source ") (str/starts-with? l ". "))
-                                (let [[_ sourced-file] (str/split l #" ")
-                                      resolved-filepath (resolve-path {:filepath path
-                                                                       :lines-read lines-read
-                                                                       :path-in-code sourced-file})
-                                      composed (process-pack-file {:parent-path path
-                                                                   :line l
-                                                                   :filename resolved-filepath
-                                                                   :cwd cwd'
-                                                                   :top? false})]
-                                  (conj lines-read composed))
-                                (conj lines-read l)))
-                            [])
-                    (str/join "\n"))]
-    (str (when line (format "# %s # BEGIN\n" line))
-         result
-         "\n"
-         (when line (format "# %s # END" line)))))
+        res (->> content
+                 (reduce (fn [{:keys [lines-read lines-read-all] :as acc} l]
+                           (if (not (or (str/starts-with? l "source ") (str/starts-with? l ". ")))
+                             ;; if not a source line, just add a line
+                             {:lines-read (conj (vec lines-read) l)
+                              :lines-read-all (conj (vec lines-read-all) l)}
+                             ;; if source, download if necessary and go deeper
+                             (let [[_ file-to-source] (str/split l #" ")
+                                   ;; resolve variable within path by evaluating everything read until this point
+                                   resolved-source-path (resolve-path {:debug? debug?
+                                                                       :lines-read lines-read-all
+                                                                       :path-in-code file-to-source
+                                                                       :script-path path})
+                                   _ (when debug? (log {:fn :process-pack-file :msg :resolved-source-path :resolved resolved-source-path}))
+                                   ;; normalize the path
+                                   normalized-source-path (str (if (fs/absolute? resolved-source-path) resolved-source-path (fs/normalize (fs/path cwd resolved-source-path))))
+                                   _ (when debug? (log {:fn :process-pack-file :msg :normalized-source-path :data normalized-source-path}))
+                                   res (process-pack-file {:debug? debug?
+                                                           :line l
+                                                           :lines-read-before lines-read-all
+                                                           :path normalized-source-path
+                                                           :chain (conj chain normalized-source-path)
+                                                           :cwd cwd})]
+                               {:lines-read (vec (concat lines-read (:lines-read res)))
+                                :lines-read-all (:lines-read-all res)}))
+                           #_:fn)
+                         {:lines-read []
+                          :lines-read-all lines-read-before}))]
+    (let [pr [[(when line (format "# %s # BEGIN" line))]
+              (:lines-read res)
+              [(when line (format "# %s # END" line))]]]
+      {:lines-read (->> pr
+                        (flatten)
+                        (filter some?)
+                        (vec))
+       :lines-read-all (:lines-read-all res)})))
 
 (defn process-pack
-  [{:keys [cwd entry output] :or {cwd (str (fs/cwd))} :as opts}]
-  (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))
-        res (process-pack-file {:filename entry :cwd cwd-absolute})]
-    (fs/create-dirs (fs/parent output))
-    (spit output res)
-    res))
+  [opts]
+  (let [{:keys [debug? cwd entry output] :as opts'} (merge {:cwd (str (fs/cwd))} opts)]
+    (when debug? (log {:fn :process-pack :msg :enter :opts opts'}))
+    (let [cwd-absolute (if (fs/absolute? cwd) cwd (fs/absolutize cwd))
+          path (-> (if (fs/absolute? entry) entry (fs/absolutize (fs/path cwd entry))) (fs/normalize) (str))
+          _ (if (fs/exists? path)
+              (when debug? (log {:fn :process-pack :msg :file-exists :path path}))
+              (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist :path path})))
+          {:keys [lines-read] :as pack-file-res} (process-pack-file {:debug? debug?
+                                                                     :path path
+                                                                     :cwd cwd-absolute
+                                                                     :top? true
+                                                                     :chain [path]
+                                                                     :lines-read-before []})]
+      (fs/create-dirs (fs/parent output))
+      (let [output-str (format "%s\n" (str/join "\n" lines-read))
+            res (spit output output-str)]
+        res))))
 
 (comment
   (def test-case "./test/res/test_suite/0_nothing")
@@ -228,14 +271,17 @@
                                                       (println "File does not exist:" path)
                                                       (println "Requested by:       " (if parent-path parent-path "input param"))
                                                       (System/exit 11))
-            :source-local-file-does-not-exist (do (println "File does not exist:" path)
+            :source-local-file-does-not-exist (do (println "ERROR")
+                                                  (println "File does not exist:" path)
                                                   (println "Requested by:       " (if parent-path parent-path "input param"))
+                                                  (pprint (dissoc data :cause-kw))
                                                   (System/exit 12))
             :remote-file-not-available (do (println "ERROR")
                                            (println "Remote file does not exist")
                                            (pprint (dissoc data :cause-kw))
                                            (System/exit 13))
-            :file-does-not-exist (do (println "File does not exist:" path)
+            :file-does-not-exist (do (println "ERROR")
+                                     (println "File does not exist:" path)
                                      (println "Requested by:       " (if parent-path parent-path "input param"))
                                      (System/exit 1))
             (throw e)))))))
@@ -279,7 +325,9 @@
             :file-does-not-exist (do (println "ERROR")
                                      (println "File does not exist:" path)
                                      (println "Requested by:       " (if parent-path parent-path "input param")))
-            (throw e)))))))
+            (do (println "OHER ERROR")
+                (println (ex-data e))
+                (throw e))))))))
 
 (defn cli-help
   [_]
