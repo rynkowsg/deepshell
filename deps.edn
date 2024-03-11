@@ -10,7 +10,8 @@
         #_:deps}
 
  :aliases
- {:repl {:extra-paths ["repl/src"]}
+ {:repl {:extra-paths ["repl/src"]
+         :extra-deps {vvvvalvalval/scope-capture {:mvn/version "0.3.3"}}}
 
   :test {:extra-paths ["test/src" "test/res"]
          :extra-deps {;; sorted

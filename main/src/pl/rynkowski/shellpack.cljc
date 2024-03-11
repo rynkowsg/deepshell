@@ -3,6 +3,7 @@
 #?(:bb (do (require '[babashka.deps])
            (babashka.deps/add-deps '{:deps {;; sorted
                                             babashka/fs {:mvn/version "0.5.20"}
+                                            vvvvalvalval/scope-capture {:mvn/version "0.3.3"}
                                             babashka/process {:mvn/version "0.5.22"}
                                             http-kit/http-kit {:mvn/version "2.7.0"}
                                             org.babashka/cli {:mvn/version "0.8.57"}
@@ -14,6 +15,7 @@
   (:require
     [babashka.cli :as cli]
     [babashka.fs :as fs]
+    [sc.api]
     [babashka.process :refer [shell]]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
