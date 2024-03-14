@@ -45,8 +45,14 @@ shellpack fetch ./test/res/test_suite/4_import_remote/entry.bash
 shellpack pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundled.bash
 
 # optionally you can set current working directory (useful if the entry script doesn't use absolute path for sourced files)
-shellpack pack -c ./test/res/test_suite/2_import_nested_files -i ./entry.bash -o ./bundled.bash
+shellpack pack -i ./entry.bash -o ./bundled.bash
 ```
+
+## Examples
+
+I use this tool in the following repositories:
+- https://github.com/rynkowsg/asdf-orb - CircleCI orb providing asdf
+- https://github.com/rynkowsg/shell-gr - my library of bash snippets
 
 ## License
 
