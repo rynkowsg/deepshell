@@ -64,10 +64,19 @@
 
 (def remote->regex
   (delay (let [dir "(?<dir>[^@]*)"
-               path "(?<path>.*)"]
-           {:github (re-pattern (str "^" dir "/" "(?<type>@github)/(?<user>[^@/]*)/(?<name>[^@/]*)(@(?<ref>[^/]*))?" "/" path "$"))
-            :https (re-pattern (str "^" dir "/" "(?<type>@https)" "/" path "$"))})))
+               path "(?<path>.*)"
+               github-token "(?<token>(@github|\\.github([-_]deps){0,1}))"
+               https-token "(?<token>(@https|\\.https([-_]deps){0,1}))"]
+           {:github (re-pattern (str "^" dir "/" github-token "/" "(?<user>[^@/]*)/(?<name>[^@/]*)(@(?<ref>[^/]*))?" "/" path "$"))
+            :https (re-pattern (str "^" dir "/" https-token "/" path "$"))})))
 (def regex->remote (delay (vals->keys @remote->regex)))
+^:rct/test
+(comment #_((requiring-resolve 'com.mjdowney.rich-comment-tests/run-ns-tests!) *ns*)
+  (re-matches (:github @remote->regex) "/repo/.shellpack_deps/@github/rynkowsg/shell-gr@81b70c3da598456200d9c63fda779a04012ff256/lib/log_utils.bash") ;=>> some?
+  (re-matches (:github @remote->regex) "/repo/.github-deps/rynkowsg/shell-gr@81b70c3da598456200d9c63fda779a04012ff256/lib/log_utils.bash") ;=>> some?
+  (re-matches (:https @remote->regex) "./lib/.shellpack_deps/@https/raw.githubusercontent.com/rynkowsg/shell-gr/main/lib/trap.bash") ;=>> some?
+  (re-matches (:https @remote->regex) "./lib/.https-deps/raw.githubusercontent.com/rynkowsg/shell-gr/main/lib/trap.bash") ;=>> some?
+  :comment)
 
 (defn assess-source-path
   "having source-path, if it looks like a dep, composes url to fetch it"
