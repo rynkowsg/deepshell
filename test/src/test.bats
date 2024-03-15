@@ -71,7 +71,7 @@ test_compare_results() {
 @test "4_import_remote - compare_results" {
   local name="4_import_remote"
   rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
-  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -c "${REPO_DIR}/test/res/test_suite/${name}" -i "${REPO_DIR}/test/res/test_suite/${name}/entry.bash"
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -i "${REPO_DIR}/test/res/test_suite/${name}/entry.bash"
   # test
   test_compare_results "4_import_remote"
   # cleanup
@@ -82,7 +82,7 @@ test_compare_results() {
 @test "5_remote_sourcing_same_repo - composed_as_expected" {
   local name="5_remote_sourcing_same_repo"
   rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/.shellpack_deps"
-  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -c "${REPO_DIR}/test/res/test_suite/${name}/repo" -i "${REPO_DIR}/test/res/test_suite/${name}/repo/entry.bash"
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -i "${REPO_DIR}/test/res/test_suite/${name}/repo/entry.bash"
   # test
   test_composed_as_expected "5_remote_sourcing_same_repo/repo"
   # cleanup
@@ -92,7 +92,7 @@ test_compare_results() {
 @test "5_remote_sourcing_same_repo - compare_results" {
   local name="5_remote_sourcing_same_repo"
   rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/.shellpack_deps"
-  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -c "${REPO_DIR}/test/res/test_suite/${name}/repo" -i "${REPO_DIR}/test/res/test_suite/${name}/repo/entry.bash"
+  "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch -i "${REPO_DIR}/test/res/test_suite/${name}/repo/entry.bash"
   # test
   test_compare_results "5_remote_sourcing_same_repo/repo"
   # cleanup

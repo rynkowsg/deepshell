@@ -262,12 +262,7 @@
 ;; ---------- MAIN --------------------
 
 (def cli-fetch-opts
-  (delay {:spec {:cwd {:alias :c
-                       :coerce :string
-                       :default (str (fs/cwd))
-                       :desc "Sets the working directory. Defaults to current directory."
-                       :ref "<path>"}
-                 :entry {:alias :i
+  (delay {:spec {:entry {:alias :i
                          :coerce :string
                          :desc "Entry point to the script being processed."
                          :ref "<path>"
@@ -314,12 +309,7 @@
   (delay (str (fs/path (fs/cwd) "bundle.bash"))))
 
 (def cli-pack-opts
-  (delay {:spec {:cwd {:alias :c
-                       :coerce :string
-                       :default (str (fs/cwd))
-                       :desc "Sets the working directory. Defaults to current directory."
-                       :ref "<path>"}
-                 :entry {:alias :i
+  (delay {:spec {:entry {:alias :i
                          :coerce :string
                          :desc "Entry point to the script being processed."
                          :ref "<path>"
