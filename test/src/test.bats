@@ -98,3 +98,11 @@ test_compare_results() {
   # cleanup
   rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/.shellpack_deps"
 }
+
+@test "6_duplicated_import - composed_as_expected" {
+  test_composed_as_expected "6_duplicated_import"
+}
+
+@test "6_duplicated_import - compare_results" {
+  test_compare_results "6_duplicated_import"
+}

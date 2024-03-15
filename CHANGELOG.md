@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **pack**: Fix adding same dependency more than once
+
 ## 0.1.0
 
 Initial version supports following:

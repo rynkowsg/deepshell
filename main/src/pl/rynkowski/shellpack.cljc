@@ -183,16 +183,20 @@
   :comment)
 
 (defn process-pack-file
-  [{:keys [debug? lines-read-before line path chain root-path top?] :as opts}]
+  [{:keys [debug? lines-read-before line path chain sourced-list root-path top?] :as opts}]
   (when debug? (log {:fn :process-pack-file :opts (dissoc opts :lines-read-before)}))
   (let [content (-> (slurp path)
                     (str/split-lines))
+        init-acc {:lines-read []
+                  :lines-read-all lines-read-before
+                  :sourced-list sourced-list}
         res (->> content
-                 (reduce (fn [{:keys [lines-read lines-read-all] :as acc} l]
+                 (reduce (fn [{:keys [lines-read lines-read-all sourced-list] :as acc} l]
                            (if (not (or (str/starts-with? l "source ") (str/starts-with? l ". ")))
                              ;; if not a source line, just add a line
                              {:lines-read (conj (vec lines-read) l)
-                              :lines-read-all (conj (vec lines-read-all) l)}
+                              :lines-read-all (conj (vec lines-read-all) l)
+                              :sourced-list sourced-list}
                              ;; if source, download if necessary and go deeper
                              (let [[_ file-to-source] (str/split l #" ")
                                    ;; resolve variable within path by evaluating everything read until this point
@@ -206,18 +210,25 @@
                                    normalized-source-path (str (if (fs/absolute? resolved-source-path)
                                                                  resolved-source-path
                                                                  (fs/normalize (fs/path (fs/cwd) resolved-source-path))))
-                                   _ (when debug? (log {:fn :process-pack-file :msg :normalized-source-path :data normalized-source-path}))
-                                   res (process-pack-file {:debug? debug?
-                                                           :lines-read-before lines-read-all
-                                                           :line l
-                                                           :chain (conj chain normalized-source-path)
-                                                           :path normalized-source-path
-                                                           :root-path root-path})]
-                               {:lines-read (vec (concat lines-read (:lines-read res)))
-                                :lines-read-all (:lines-read-all res)}))
+                                   _ (when debug? (log {:fn :process-pack-file :msg :normalized-source-path :data normalized-source-path}))]
+                               ;; continue only if the file was not yet sourced
+                               (if (contains? sourced-list normalized-source-path)
+                                 (do (when debug? (log {:fn :process-pack-file :msg :skip-sourcing-file}))
+                                     {:assoc acc :lines-read [(format "# %s # SKIPPED" l)]})
+                                 (let [_ (when debug? (log {:fn :process-pack-file :msg :continue-sourcing-file :data {:normalized-source-path normalized-source-path
+                                                                                                                       :sourced-list sourced-list}}))
+                                       res (process-pack-file {:debug? debug?
+                                                               :lines-read-before lines-read-all
+                                                               :line l
+                                                               :chain (conj chain normalized-source-path)
+                                                               :path normalized-source-path
+                                                               :sourced-list sourced-list
+                                                               :root-path root-path})]
+                                   {:lines-read (vec (concat lines-read (:lines-read res)))
+                                    :lines-read-all (:lines-read-all res)
+                                    :sourced-list (conj sourced-list normalized-source-path)}))))
                            #_:fn)
-                         {:lines-read []
-                          :lines-read-all lines-read-before}))]
+                         init-acc))]
     (let [pr [[(when line (format "# %s # BEGIN" line))]
               (:lines-read res)
               [(when line (format "# %s # END" line))]]]
@@ -225,7 +236,8 @@
                         (flatten)
                         (filter some?)
                         (vec))
-       :lines-read-all (:lines-read-all res)})))
+       :lines-read-all (:lines-read-all res)
+       :sourced-list (:sourced-list res)})))
 
 (defn process-pack
   [{:keys [debug? entry output] :as opts}]
@@ -241,6 +253,7 @@
                                                                    :lines-read-before []
                                                                    :chain [absolute-entry]
                                                                    :path absolute-entry
+                                                                   :sourced-list #{}
                                                                    :root-path absolute-entry
                                                                    :top? true})]
     (fs/create-dirs (fs/parent absolute-output))
