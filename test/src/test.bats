@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 # detect ROOT_DIR - BEGIN
-TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" || exit 1; pwd -P)"
-REPO_DIR="$(cd "${TEST_DIR}/../.." || exit 1; pwd -P)"
+TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd -P || exit 1)"
+REPO_DIR="$(cd "${TEST_DIR}/../.." && pwd -P || exit 1)"
 # detect ROOT_DIR - end
 
 test_composed_as_expected() {

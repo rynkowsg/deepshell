@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # detect TEST_LIB_DIR - BEGIN
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}}")" && pwd -P)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}}")" && pwd -P || exit 1)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P || exit 1)"
 SHELLPACK_DEPS_DIR="${SHELLPACK_DEPS_DIR:-"${ROOT_DIR}/.shellpack_deps"}"
 export TEST_LIB_DIR="${SHELLPACK_DEPS_DIR}/@github/rynkowsg/shellpack@dev/test/res/test_suite/5_remote_sourcing_same_repo"
 # detect TEST_LIB_DIR - END
@@ -23,8 +23,8 @@ export TEST_LIB_DIR="${SHELLPACK_DEPS_DIR}/@github/rynkowsg/shellpack@dev/test/r
 #!/usr/bin/env bash
 
 # detect _TEST_LIB_DIR - BEGIN
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}}")" && pwd -P)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}}")" && pwd -P || exit 1)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P || exit 1)"
 SHELLPACK_DEPS_DIR="${SHELLPACK_DEPS_DIR:-"${ROOT_DIR}/.shellpack_deps"}"
 _TEST_LIB_DIR="${TEST_LIB_DIR:-"${SHELLPACK_DEPS_DIR}/@github/rynkowsg/shellpack@dev/test/res/test_suite/5_remote_sourcing_same_repo"}"
 # detect _TEST_LIB_DIR - END

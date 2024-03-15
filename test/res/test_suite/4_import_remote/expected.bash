@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P || exit 1)"
 
 # 1. Here we import by @github token:
 

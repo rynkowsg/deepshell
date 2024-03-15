@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(cd "${SCRIPT_DIR}/.." || exit 1; pwd -P)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P || exit 1)"
+REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P || exit 1)"
 
 # linter will complain if I don't fetch deps for 4_import_remote
 "${REPO_DIR}/main/src/pl/rynkowski/shellpack.cljc" fetch "${REPO_DIR}/test/res/test_suite/4_import_remote/entry.bash"

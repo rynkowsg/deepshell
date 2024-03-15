@@ -57,7 +57,7 @@
   (resolve-path {:script-path (str (fs/absolutize "./test/res/test_suite/3_import_with_variables/entry.bash"))
                  :root-path (str (fs/absolutize "./test/res/test_suite/3_import_with_variables/entry.bash"))
                  :lines-read ["#!/usr/bin/env bash"
-                              "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\""]
+                              "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd -P || exit 1)\""]
                  :path-in-code "${SCRIPT_DIR}/lib/lib1.bash"})
   ;=>> (str (fs/normalize (fs/path (fs/cwd) "./test/res/test_suite/3_import_with_variables/lib/lib1.bash")))
   :comment)

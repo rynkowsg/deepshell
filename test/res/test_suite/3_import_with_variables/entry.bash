@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P || exit 1)"
 
 # shellcheck source=test/res/test_suite/3_import_with_variables/lib/lib1.bash
 source "${SCRIPT_DIR}/lib/lib1.bash"
