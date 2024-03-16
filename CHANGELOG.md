@@ -28,7 +28,7 @@ Examples:
 
 The script visits all files following `source` declarations.
 
-> [!INFO]
+> [!IMPORTANT]
 > It doesn't support `source` declarations from within a function.
 
 #### Resolution of paths that contains bash variables
@@ -43,17 +43,20 @@ source "${SHELL_GR_DIR}/lib/color.bash"
 
 Scenario when we source remote file and that remote file sources the file in the same directory.
 This is done via reliance on resolved absolute path.
+
 Example:
-root script
-```bash
-SHELL_GR_DIR="${ROOT_DIR}/.github_deps/rynkowsg/shell-gr@0.1.0"}"
-source "${SHELL_GR_DIR}/lib/log.bash"
-```
-remote log.bash
-```bash
-_SHELL_GR_DIR="${SHELL_GR_DIR:-"${_GR_LOG_ROOT_DIR}"}"
-source "${_SHELL_GR_DIR}/lib/color.bash"
-```
+
+- root script
+  ```bash
+  SHELL_GR_DIR="${ROOT_DIR}/.github_deps/rynkowsg/shell-gr@0.1.0"}"
+  source "${SHELL_GR_DIR}/lib/log.bash"
+  ```
+
+- remote log.bash
+  ```bash
+  _SHELL_GR_DIR="${SHELL_GR_DIR:-"${_GR_LOG_ROOT_DIR}"}"
+  source "${_SHELL_GR_DIR}/lib/color.bash"
+  ```
+
 In the above example, if the SHELL_GR_DIR is defined before, it is taken,
 otherwise it is set to a root dir computed in the library file earlier.
-
