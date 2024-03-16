@@ -2,9 +2,11 @@
 
 ## Unreleased
 
+## [0.1.1](https://github.com/rynkowsg/shellpack/compare/v0.1.0...v0.1.1) (2024-03-15)
+
 - **pack**: Fix adding same dependency more than once
 
-## 0.1.0
+## [0.1.0](https://github.com/rynkowsg/shellpack/commits/v0.1.0) (2024-03-15)
 
 Initial version supports following:
 

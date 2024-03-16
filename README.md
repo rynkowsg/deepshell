@@ -22,7 +22,7 @@ I'm talking about the stuff we use all the time, like logging, handling errors, 
 ## Install
 
 ```sh
-curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/main/main/src/pl/rynkowski/shellpack.cljc -o ~/.bin/shellpack
+curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/v0.1.1/main/src/pl/rynkowski/shellpack.cljc -o ~/.bin/shellpack
 chmod +x ~/.bin/shellpack
 ```
 The line above installs the script in `~/.bin`. That installation directory needs to be added to `PATH`.
