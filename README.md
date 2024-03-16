@@ -51,8 +51,8 @@ shellpack pack -i ./entry.bash -o ./bundled.bash
 ## Examples
 
 I use this tool in the following repositories:
-- https://github.com/rynkowsg/asdf-orb - CircleCI orb providing asdf
-- https://github.com/rynkowsg/shell-gr - my library of bash snippets
+- https://github.com/rynkowsg/asdf-orb - CircleCI orb providing asdf ([script example](https://github.com/rynkowsg/asdf-orb/blob/main/src/scripts/install_asdf.bash))
+- https://github.com/rynkowsg/shell-gr - my library of bash snippets ([lib examples](https://github.com/rynkowsg/shell-gr/blob/main/lib/))
 
 ## License
 
