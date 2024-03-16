@@ -36,7 +36,7 @@
 
 (defn resolve-path
   [{:keys [debug? lines-read script-path path-in-code root-path] :as opts}]
-  (when debug? (log {:fn :resolve-path :opts (dissoc opts :lines-read)}))
+  (when debug? (log {:fn :resolve-path :opts (-> opts (dissoc :lines-read) (assoc :lines-read-count (count lines-read)))}))
   (let [temp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                    :prefix (format "%s.temp-%s." (fs/file-name script-path) (str (System/currentTimeMillis)))}))
                         (spit (str/join "\n" lines-read)))
@@ -155,6 +155,7 @@
                                                               :chain (conj chain assessed-path)
                                                               :path assessed-path
                                                               :root-path root-path})]
+                               (when debug? (log {:fn :process-fetch-file :msg :return :lines-read-count (count lines)}))
                                lines))
                            #_:fn)
                          lines-read-before))]
@@ -214,7 +215,7 @@
                                ;; continue only if the file was not yet sourced
                                (if (contains? sourced-list normalized-source-path)
                                  (do (when debug? (log {:fn :process-pack-file :msg :skip-sourcing-file}))
-                                     {:assoc acc :lines-read [(format "# %s # SKIPPED" l)]})
+                                     (assoc acc :lines-read (conj (vec lines-read) (format "# %s # SKIPPED" l))))
                                  (let [_ (when debug? (log {:fn :process-pack-file :msg :continue-sourcing-file :data {:normalized-source-path normalized-source-path
                                                                                                                        :sourced-list sourced-list}}))
                                        res (process-pack-file {:debug? debug?

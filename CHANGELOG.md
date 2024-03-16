@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **pack**: Fix crash when skip encountered
+
 ## [0.1.1](https://github.com/rynkowsg/shellpack/compare/v0.1.0...v0.1.1) (2024-03-15)
 
 - **pack**: Fix adding same dependency more than once
