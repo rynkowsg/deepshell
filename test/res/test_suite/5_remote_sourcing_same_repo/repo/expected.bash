@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-# detect TEST_LIB_DIR - BEGIN
+# Path Initialization
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}}")" && pwd -P || exit 1)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd -P || exit 1)"
 SHELLPACK_DEPS_DIR="${SHELLPACK_DEPS_DIR:-"${ROOT_DIR}/.shellpack_deps"}"
 export TEST_LIB_DIR="${SHELLPACK_DEPS_DIR}/@github/rynkowsg/shellpack@dev/test/res/test_suite/5_remote_sourcing_same_repo"
-# detect TEST_LIB_DIR - END
 
 {
   echo "------- entry.bash - BEGIN --------"
@@ -18,6 +17,7 @@ export TEST_LIB_DIR="${SHELLPACK_DEPS_DIR}/@github/rynkowsg/shellpack@dev/test/r
   echo "------- entry.bash - END --------"
 } >>/tmp/test-log.txt
 
+# Library Sourcing
 # shellcheck source=test/res/test_suite/5_remote_sourcing_same_repo/.shellpack_deps/@github/rynkowsg/shellpack@dev/test/res/test_suite/5_remote_sourcing_same_repo/lib/log.bash
 # source "${TEST_LIB_DIR}/lib/log.bash" # BEGIN
 #!/usr/bin/env bash
