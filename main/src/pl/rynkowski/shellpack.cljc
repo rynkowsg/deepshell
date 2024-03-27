@@ -204,7 +204,7 @@
   (when debug? (log {:fn :process-fetch :msg :enter :opts opts}))
   (let [path (str (if (fs/absolute? entry) entry (fs/absolutize (fs/path (fs/cwd) entry))))
         _ (if (fs/exists? path)
-            (when debug? (log {:fn :process-pack :msg :file-exists :path path}))
+            (when debug? (log {:fn :process-fetch :msg :file-exists :path path}))
             (throw (ex-info "file does not exist" {:cause-kw :file-does-not-exist :path path})))]
     (process-fetch-file {:debug? debug?
                          :path path
@@ -335,11 +335,11 @@
         (let [{:keys [cause-kw path parent-path] :as data} (ex-data e)]
           (case cause-kw
             :file-under-processing-does-not-exist (do (println "ERROR")
-                                                      (println "File does not exist:" path)
+                                                      (println "File does not exist:" path " " :file-under-processing-does-not-exist)
                                                       (println "Requested by:       " (if parent-path parent-path "input param"))
                                                       (System/exit 11))
             :source-local-file-does-not-exist (do (println "ERROR")
-                                                  (println "File does not exist:" path)
+                                                  (println "File does not exist:" path " " :source-local-file-does-not-exist)
                                                   (println "Requested by:       " (if parent-path parent-path "input param"))
                                                   (pprint (dissoc data :cause-kw))
                                                   (System/exit 12))
@@ -348,7 +348,7 @@
                                            (pprint (dissoc data :cause-kw))
                                            (System/exit 13))
             :file-does-not-exist (do (println "ERROR")
-                                     (println "File does not exist:" path)
+                                     (println "File does not exist:" path " " :file-does-not-exist)
                                      (println "Requested by:       " (if parent-path parent-path "input param"))
                                      (System/exit 1))
             (do (println "OHER ERROR")
@@ -388,8 +388,9 @@
         (let [{:keys [cause-kw path parent-path]} (ex-data e)]
           (case cause-kw
             :file-does-not-exist (do (println "ERROR")
-                                     (println "File does not exist:" path)
-                                     (println "Requested by:       " (if parent-path parent-path "input param")))
+                                     (println "File does not exist:" path " " :file-does-not-exist)
+                                     (println "Requested by:       " (if parent-path parent-path "input param"))
+                                     (System/exit 1))
             (do (println "OHER ERROR")
                 (println (ex-data e))
                 (println e)
