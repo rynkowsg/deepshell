@@ -34,19 +34,56 @@
 (defn- log [& data]
   (apply println data))
 
+(defn extract-interpreter [lines]
+  (let [pattern #"^#!(.*)"
+        matcher (re-matcher pattern (first lines))]
+    (if-let [match (re-find matcher)]
+      (second match)
+      nil)))
+
+(defn resolve-interpreter [lines]
+  (let [extracted (extract-interpreter lines)]
+    (cond
+      (nil? extracted) "/bin/bash"
+      (str/includes? extracted "bats") "/bin/bash"
+      :else extracted)))
+
+^:rct/test
+(comment #_((requiring-resolve 'com.mjdowney.rich-comment-tests/run-ns-tests!) *ns*)
+  (extract-interpreter ["#!/usr/bin/env bash" "echo"]) ;=> "/usr/bin/env bash"
+  (extract-interpreter ["echo"]) ;=> nil
+  (resolve-interpreter ["#!/usr/bin/env bash" "echo"]) ;=> "/usr/bin/env bash"
+  (resolve-interpreter ["#!/usr/bin/env bats" "echo"]) ;=> "/bin/bash"
+  (resolve-interpreter ["echo"]) ;=> "/bin/bash"
+  :rct/test)
+
 (defn resolve-path
   [{:keys [debug? lines-read script-path path-in-code root-path] :as opts}]
   (when debug? (log {:fn :resolve-path :opts (-> opts (dissoc :lines-read) (assoc :lines-read-count (count lines-read)))}))
-  (let [temp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
-                                                   :prefix (format "%s.temp-%s." (fs/file-name script-path) (str (System/currentTimeMillis)))}))
-                        (spit (str/join "\n" lines-read)))
-        cmd (-> (str/join "" ["bash -c '"
-                              "source %s >/dev/null; "
-                              "printf \"%%s\" %s"
-                              "'"])
-                (format temp-file path-in-code))
+  (let [prefix (format "%s.%s" (fs/file-name script-path) (str (System/currentTimeMillis)))
+        ext (fs/extension root-path)
+        ;; first create a temp file with the lines read
+        lines-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
+                                                        :prefix (str prefix "-lines.")
+                                                        :suffix (str "." ext)}))
+                             (spit (str/join "\n" lines-read)))
+        ;; then create a temp file with the path resolver code
+        resolver-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
+                                                           :prefix (str prefix "-resolver.")
+                                                           :suffix (str "." ext)}))
+                            (spit (str/join "\n" [(format "source %s >/dev/null" lines-tmp-file)
+                                                  (format "printf \"%%s\" %s" path-in-code)])))
+        interpreter (resolve-interpreter lines-read)
+        cmd (str interpreter " " resolver-tmp-file)
+        _ (when debug? (log {:fn :resolve-path :cmd cmd}))
         {:keys [exit out] :as res} (shell {:out :string} cmd)]
-    (fs/delete temp-file)
+    (if debug?
+      (log {:fn :resolve-path :msg :completed :data {:lines-tmp-file lines-tmp-file
+                                                     :resolver-tmp-file resolver-tmp-file
+                                                     :cmd cmd
+                                                     :res res}})
+      (do (fs/delete lines-tmp-file)
+          (fs/delete resolver-tmp-file)))
     (if (= exit 0)
       out
       (throw (ex-info "path resolution failed" {:opts opts :res res})))))
@@ -60,7 +97,7 @@
                               "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd -P || exit 1)\""]
                  :path-in-code "${SCRIPT_DIR}/lib/lib1.bash"})
   ;=>> (str (fs/normalize (fs/path (fs/cwd) "./test/res/test_suite/3_import_with_variables/lib/lib1.bash")))
-  :comment)
+  :rct/test)
 
 (def remote->regex
   (delay (let [dir "(?<dir>[^@]*)"
@@ -101,7 +138,7 @@
   ;=> {:path "./lib/trap.bash"}
   (assess-source-path "./lib/@github/rynkowsg/shell-gr/lib/trap.bash")
   ;=> {:path "./lib/@github/rynkowsg/shell-gr/lib/trap.bash" :url "https://raw.githubusercontent.com/rynkowsg/shell-gr/HEAD/lib/trap.bash"}
-  :comment)
+  :rct/test)
 
 (defn download-file
   [{:keys [debug? url path] :as params}]

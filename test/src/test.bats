@@ -106,3 +106,7 @@ test_compare_results() {
 @test "6_duplicated_import - compare_results" {
   test_compare_results "6_duplicated_import"
 }
+
+@test "7_bats_import - composed_as_expected" {
+  test_composed_as_expected "7_bats_import"
+}

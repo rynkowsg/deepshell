@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix paths resolution in BATS files
+
 ## [0.1.2](https://github.com/rynkowsg/shellpack/compare/v0.1.1...v0.1.2) (2024-03-16)
 
 - **pack**: Fix crash when skip encountered
