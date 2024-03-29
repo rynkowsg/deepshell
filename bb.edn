@@ -12,6 +12,7 @@
 
   test {:depends [test:bash test:bb test:clj]}
   test:bash (shell "bats ./test/src/test.bats")
+  test:bash-verbose (shell "bats --show-output-of-passing-tests ./test/src/test.bats")
 
   test:bb {:task (let [test-deps {:deps (-> (slurp "deps.edn") read-string :aliases :test :extra-deps)}]
                    (println test-deps)

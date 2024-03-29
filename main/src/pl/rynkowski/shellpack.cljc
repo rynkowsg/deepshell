@@ -158,9 +158,8 @@
                     (str/split-lines))
         res (->> content
                  (reduce (fn [lines-read l]
-                           (if (not (or (str/starts-with? l "source ") (str/starts-with? l ". ")))
-                             ;; if not a source line, just add a line
-                             (conj (vec lines-read) l)
+                           (if (and (or (str/starts-with? l "source ") (str/starts-with? l ". "))
+                                    (not (str/includes? l "shellpack skip")))
                              ;; if source, download if necessary and go deeper
                              (let [[_ file-to-source] (str/split l #" ")
                                    ;; resolve variable within path by evaluating everything read until this point
@@ -193,7 +192,9 @@
                                                               :path assessed-path
                                                               :root-path root-path})]
                                (when debug? (log {:fn :process-fetch-file :msg :return :lines-read-count (count lines)}))
-                               lines))
+                               lines)
+                             ;; if not a source line, just add a line
+                             (conj (vec lines-read) l))
                            #_:fn)
                          lines-read-before))]
     res)
@@ -334,24 +335,24 @@
       (catch Exception e
         (let [{:keys [cause-kw path parent-path] :as data} (ex-data e)]
           (case cause-kw
-            :file-under-processing-does-not-exist (do (println "ERROR")
+            :file-under-processing-does-not-exist (do (println "FETCH ERROR")
                                                       (println "File does not exist:" path " " :file-under-processing-does-not-exist)
                                                       (println "Requested by:       " (if parent-path parent-path "input param"))
                                                       (System/exit 11))
-            :source-local-file-does-not-exist (do (println "ERROR")
+            :source-local-file-does-not-exist (do (println "FETCH ERROR")
                                                   (println "File does not exist:" path " " :source-local-file-does-not-exist)
                                                   (println "Requested by:       " (if parent-path parent-path "input param"))
                                                   (pprint (dissoc data :cause-kw))
                                                   (System/exit 12))
-            :remote-file-not-available (do (println "ERROR")
+            :remote-file-not-available (do (println "FETCH ERROR")
                                            (println "Remote file does not exist")
                                            (pprint (dissoc data :cause-kw))
                                            (System/exit 13))
-            :file-does-not-exist (do (println "ERROR")
+            :file-does-not-exist (do (println "FETCH ERROR")
                                      (println "File does not exist:" path " " :file-does-not-exist)
                                      (println "Requested by:       " (if parent-path parent-path "input param"))
                                      (System/exit 1))
-            (do (println "OHER ERROR")
+            (do (println "FETCH ERROR: OTHER")
                 (println (ex-data e))
                 (println e)
                 (throw e))))))))
@@ -387,11 +388,11 @@
       (catch Exception e
         (let [{:keys [cause-kw path parent-path]} (ex-data e)]
           (case cause-kw
-            :file-does-not-exist (do (println "ERROR")
+            :file-does-not-exist (do (println "PACK ERROR")
                                      (println "File does not exist:" path " " :file-does-not-exist)
                                      (println "Requested by:       " (if parent-path parent-path "input param"))
                                      (System/exit 1))
-            (do (println "OHER ERROR")
+            (do (println "PACK ERROR: OTHER")
                 (println (ex-data e))
                 (println e)
                 (throw e))))))))
