@@ -1,4 +1,4 @@
-# shellpack
+# sosh
 
 [![CircleCI Build Status][ci-build-badge]][ci-build]
 [![License][license-badge]][license]
@@ -22,30 +22,30 @@ I'm talking about the stuff we use all the time, like logging, handling errors, 
 ## Install
 
 ```sh
-curl -s https://raw.githubusercontent.com/rynkowsg/shellpack/v0.1.2/main/src/pl/rynkowski/shellpack.cljc -o ~/.bin/shellpack
-chmod +x ~/.bin/shellpack
+curl -s https://raw.githubusercontent.com/rynkowsg/sosh/v0.1.2/main/src/pl/rynkowski/sosh.cljc -o ~/.bin/sosh
+chmod +x ~/.bin/sosh
 ```
 The line above installs the script in `~/.bin`. That installation directory needs to be added to `PATH`.
 
 > [!WARNING]
-> The tool requires [Babashka](https://github.com/babashka/babashka) to work. If you like to see this a standalone binary rise your voice [HERE](https://github.com/rynkowsg/shellpack/issues/1).
+> The tool requires [Babashka](https://github.com/babashka/babashka) to work. If you like to see this a standalone binary rise your voice [HERE](https://github.com/rynkowsg/sosh/issues/1).
 
 ## Usage
 
 **FETCH**
 
 ```sh
-shellpack fetch ./test/res/test_suite/4_import_remote/entry.bash
+sosh fetch ./test/res/test_suite/4_import_remote/entry.bash
 ```
 
 **PACK**
 
 ```sh
 # pack the script on input to the path on output
-shellpack pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundled.bash
+sosh pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundled.bash
 
 # optionally you can set current working directory (useful if the entry script doesn't use absolute path for sourced files)
-shellpack pack -i ./entry.bash -o ./bundled.bash
+sosh pack -i ./entry.bash -o ./bundled.bash
 ```
 
 ## Examples
@@ -60,7 +60,7 @@ Copyright © 2024 Greg Rynkowski
 
 Released under the [MIT license][license].
 
-[ci-build-badge]: https://circleci.com/gh/rynkowsg/shellpack.svg?style=shield "CircleCI Build Status"
-[ci-build]: https://circleci.com/gh/rynkowsg/shellpack
+[ci-build-badge]: https://circleci.com/gh/rynkowsg/sosh.svg?style=shield "CircleCI Build Status"
+[ci-build]: https://circleci.com/gh/rynkowsg/sosh
 [license-badge]: https://img.shields.io/badge/license-MIT-lightgrey.svg
-[license]: https://raw.githubusercontent.com/rynkowsg/shellpack/main/LICENSE
+[license]: https://raw.githubusercontent.com/rynkowsg/sosh/main/LICENSE

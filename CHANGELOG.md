@@ -2,18 +2,19 @@
 
 ## Unreleased
 
+- Rename 'shellpack' to 'sosh'
 - Add skipping source on "shellpack skip"
 - Fix paths resolution in BATS files
 
-## [0.1.2](https://github.com/rynkowsg/shellpack/compare/v0.1.1...v0.1.2) (2024-03-16)
+## [0.1.2](https://github.com/rynkowsg/sosh/compare/v0.1.1...v0.1.2) (2024-03-16)
 
 - **pack**: Fix crash when skip encountered
 
-## [0.1.1](https://github.com/rynkowsg/shellpack/compare/v0.1.0...v0.1.1) (2024-03-15)
+## [0.1.1](https://github.com/rynkowsg/sosh/compare/v0.1.0...v0.1.1) (2024-03-15)
 
 - **pack**: Fix adding same dependency more than once
 
-## [0.1.0](https://github.com/rynkowsg/shellpack/commits/v0.1.0) (2024-03-15)
+## [0.1.0](https://github.com/rynkowsg/sosh/commits/v0.1.0) (2024-03-15)
 
 Initial version supports following:
 
@@ -26,10 +27,10 @@ To determine the source path is remote or not, it looks for certain tokens like:
 Examples:
 - `source ".github_deps/rynkowsg/shell-gr@0.1.0/lib/color.bash"`
 - `source ".github/rynkowsg/shell-gr@0.1.0/lib/color.bash"`
-- `source ".https/raw.githubusercontent.com/rynkowsg/shellpack/0.1.0/lib/color.bash"`
-- `source ".https_deps/raw.githubusercontent.com/rynkowsg/shellpack/0.1.0/lib/color.bash"`
+- `source ".https/raw.githubusercontent.com/rynkowsg/sosh/0.1.0/lib/color.bash"`
+- `source ".https_deps/raw.githubusercontent.com/rynkowsg/sosh/0.1.0/lib/color.bash"`
 - `source "@github/rynkowsg/shell-gr@0.1.0/lib/color.bash"`
-- `source "@https/raw.githubusercontent.com/rynkowsg/shellpack/0.1.0/lib/color.bash"`
+- `source "@https/raw.githubusercontent.com/rynkowsg/sosh/0.1.0/lib/color.bash"`
 
 #### Bundling the multi-file script into one file
 

@@ -11,7 +11,7 @@
                                             pl.rynkowski.clj-gr/lang {:git/url "https://github.com/rynkowsg/clj-gr.git" :git/sha "80e9dc0bd21c538ff443d8edc7df85f89d589a82" :deps/root "lib/lang"}
                                             #_:deps}})))
 
-(ns pl.rynkowski.shellpack
+(ns pl.rynkowski.sosh
   (:require
     [babashka.cli :as cli]
     [babashka.fs :as fs]
@@ -109,9 +109,9 @@
 (def regex->remote (delay (vals->keys @remote->regex)))
 ^:rct/test
 (comment #_((requiring-resolve 'com.mjdowney.rich-comment-tests/run-ns-tests!) *ns*)
-  (re-matches (:github @remote->regex) "/repo/.shellpack_deps/@github/rynkowsg/shell-gr@81b70c3da598456200d9c63fda779a04012ff256/lib/log_utils.bash") ;=>> some?
+  (re-matches (:github @remote->regex) "/repo/.sosh_deps/@github/rynkowsg/shell-gr@81b70c3da598456200d9c63fda779a04012ff256/lib/log_utils.bash") ;=>> some?
   (re-matches (:github @remote->regex) "/repo/.github-deps/rynkowsg/shell-gr@81b70c3da598456200d9c63fda779a04012ff256/lib/log_utils.bash") ;=>> some?
-  (re-matches (:https @remote->regex) "./lib/.shellpack_deps/@https/raw.githubusercontent.com/rynkowsg/shell-gr/main/lib/trap.bash") ;=>> some?
+  (re-matches (:https @remote->regex) "./lib/.sosh_deps/@https/raw.githubusercontent.com/rynkowsg/shell-gr/main/lib/trap.bash") ;=>> some?
   (re-matches (:https @remote->regex) "./lib/.https-deps/raw.githubusercontent.com/rynkowsg/shell-gr/main/lib/trap.bash") ;=>> some?
   :comment)
 
@@ -159,7 +159,7 @@
         res (->> content
                  (reduce (fn [lines-read l]
                            (if (and (or (str/starts-with? l "source ") (str/starts-with? l ". "))
-                                    (not (str/includes? l "shellpack skip")))
+                                    (not (or (str/includes? l "shellpack skip") (str/includes? l "sosh skip"))))
                              ;; if source, download if necessary and go deeper
                              (let [[_ file-to-source] (str/split l #" ")
                                    ;; resolve variable within path by evaluating everything read until this point

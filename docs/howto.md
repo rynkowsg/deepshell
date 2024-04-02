@@ -2,7 +2,7 @@
 
 ## BATS
 
-shellpack for resolution of file paths, launches the interpreter.
+sosh for resolution of file paths, launches the interpreter.
 Unfortunately, bats can't be used for it, so instead bash is launched.
 This leads two considerations.
 

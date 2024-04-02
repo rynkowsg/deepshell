@@ -1,4 +1,4 @@
-(ns pl.rynkowski.shellpack_test
+(ns pl.rynkowski.sosh_test
   (:require
     [clojure.string :as str]
     [clojure.test :refer [deftest]]
@@ -6,4 +6,4 @@
 
 (deftest rct-tests
   (let [paths (-> (slurp "deps.edn") read-string :paths)]
-    (test-runner/run-tests-in-file-tree! :dirs (set paths) :file-pred #(str/includes? % "shellpack"))))
+    (test-runner/run-tests-in-file-tree! :dirs (set paths) :file-pred #(str/includes? % "sosh"))))

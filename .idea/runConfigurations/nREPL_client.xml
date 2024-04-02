@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="nREPL client" type="ClojureREPL" factoryName="Remote" activateToolWindowBeforeRun="false" singleton="true">
-    <module name="shellpack" />
+    <module name="sosh" />
     <setting name="displayName" value="nREPL client" />
     <setting name="host" value="" />
     <setting name="port" value="0" />

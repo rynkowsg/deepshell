@@ -7,7 +7,7 @@
   deps:upgrade (shell "bb deps --upgrade")
 
   lint (do
-         (shell {:dir "./test/res/test_suite/5_remote_sourcing_same_repo/repo"} (str (fs/path (fs/cwd) "main/src/pl/rynkowski/shellpack.cljc")" fetch -i entry.bash"))
+         (shell {:dir "./test/res/test_suite/5_remote_sourcing_same_repo/repo"} (str (fs/path (fs/cwd) "main/src/pl/rynkowski/sosh.cljc")" fetch -i entry.bash"))
          (shell "@bin/lint.bash"))
 
   test {:depends [test:bash test:bb test:clj]}
