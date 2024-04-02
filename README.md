@@ -1,13 +1,29 @@
 # sosh
 
+
 [![CircleCI Build Status][ci-build-badge]][ci-build]
 [![License][license-badge]][license]
 
-Two pillars:
-- `source` bash files from remote locations like GitHub, and
-- bundle your shell scripts into one file.
+_**so**urce **.sh**_ to the rescue!
+
+Leverage `source` to fetch remote shell scripts and optionally bundle them into one file.
 
 Status: **ALPHA**
+
+## Briefly
+
+sosh a shell tool that uses `source` declaration in shell scripts to fetch remote scripts and/or bundle them into one file.
+
+Example: let's assume you need some color definitions and functions to serialize arrays in a Bash script. You can take them adding following `source` declaration:
+```bash
+source "${ROOT_DIR}/.github_deps/rynkowsg/shell-gr@v0.2.2/lib/color.bash"
+source "${ROOT_DIR}/.https_deps/gist.githubusercontent.com/TekWizely/c0259f25e18f2368c4a577495cd566cd/raw/b9e87c74565fb90a39bb7a1033f950773201dbf7/serialize_array.bash"
+```
+If you call `sosh fetch` on the script, sosh will get these files for you.
+
+If you like to bundle the script into one file, you can use `sosh pack` and sosh will save the bundled file to expected location.
+
+That's that simple.
 
 ## Motivation
 
@@ -48,11 +64,37 @@ sosh pack -i ./test/res/test_suite/3_import_with_variables/entry.bash -o ./bundl
 sosh pack -i ./entry.bash -o ./bundled.bash
 ```
 
-## Examples
+## What's there
 
-I use this tool in the following repositories:
-- https://github.com/rynkowsg/asdf-orb - CircleCI orb providing asdf ([script example](https://github.com/rynkowsg/asdf-orb/blob/main/src/scripts/install_asdf.bash))
-- https://github.com/rynkowsg/shell-gr - my library of bash snippets ([lib examples](https://github.com/rynkowsg/shell-gr/blob/main/lib/))
+**Features**
+- recursive dependency resolution (your script requires A, A requires B, B requires C)
+- ignore with `# sosh: skip` at the end of the line containing `source`
+- support for BATS files[^bats-disclaimer]
+
+[^bats-disclaimer]: But script paths need to consider they can be called not only by bats, but also by Bash ([example](https://github.com/rynkowsg/sosh/blob/63d85c5/test/res/test_suite/7_bats_import/entry.bats#L6)).
+
+**Examples**
+
+I use this tools in my own repos:
+- [rynkowsg/asdf-orb] - CircleCI orb providing asdf ()
+- [rynkowsg/checkout-orb] - CircleCI orb providing advanced checkout
+- [rynkowsg/shell-gr]- my library of bash snippets ([lib examples](https://github.com/rynkowsg/shell-gr/blob/main/lib/))
+
+Examples:
+- source remote scripts from github:
+  - [install_asdf.bash](https://github.com/rynkowsg/asdf-orb/blob/main/src/scripts/install_asdf.bash) - script behind [rynkowsg/asdf-orb]
+  - [clone_git_repo.bash](https://github.com/rynkowsg/checkout-orb/blob/main/src/scripts/clone_git_repo.bash) - script behind [rynkowsg/checkout-orb]
+- source remote scripts by URL:
+  - [bats_assert.bash](https://github.com/rynkowsg/shell-gr/blob/dev/lib/bats_assert.bash) - wrapper for bats_assert to fetch all necessary files at once
+- path initialization in a remote script that requires yet another scripts[^re-path-initialization]:
+  - [error.bash](https://github.com/rynkowsg/shell-gr/blob/dev/lib/error.bash#L5)
+  - most of the files in [shell-gr repository](https://github.com/rynkowsg/shell-gr/tree/dev/lib)
+
+[^re-path-initialization]: Path initialization can be complicated, especially when writing bits sourcing other bits.
+
+[rynkowsg/asdf-orb]: https://github.com/rynkowsg/asdf-orb
+[rynkowsg/checkout-orb]: https://github.com/rynkowsg/checkout-orb
+[rynkowsg/shell-gr]: https://github.com/rynkowsg/shell-gr
 
 ## License
 
