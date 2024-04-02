@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## [Unreleased](https://github.com/rynkowsg/sosh/compare/v0.2.0...HEAD)
+
+## [0.2.0](https://github.com/rynkowsg/sosh/compare/v0.1.2...v0.2.0) (2024-04-02)
 
 - Rename 'shellpack' to 'sosh'
 - Add skipping source on "shellpack skip"
