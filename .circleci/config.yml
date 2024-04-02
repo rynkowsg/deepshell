@@ -31,6 +31,7 @@ jobs:
             asdf plugin add bats https://github.com/timgluz/asdf-bats.git
             asdf plugin add shellcheck https://github.com/luizm/asdf-shellcheck.git
             asdf plugin add java https://github.com/rynkowsg/asdf-java.git
+            asdf plugin add shfmt https://github.com/luizm/asdf-shfmt.git
       - run:
           name: asdf - install tools
           command: |
@@ -41,6 +42,7 @@ jobs:
             bb --version
             java --version
             shellcheck --version
+            shfmt --version
       - save_cache:
           name: asdf - save cache (partial)
           key: asdf-{{ checksum ".tool-versions" }}
@@ -49,6 +51,7 @@ jobs:
             - ~/.asdf/plugins
             - ~/.asdf/shims
       - run: bb lint
+      - run: bb format check
       - run: bb test
 
 workflows:

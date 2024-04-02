@@ -12,3 +12,7 @@
 # Clojure
 .cpcache
 .nrepl-port
+
+# shellpack
+.github_deps
+.https_deps

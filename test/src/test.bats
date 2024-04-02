@@ -11,7 +11,10 @@ test_composed_as_expected_relative() {
   local input_path="entry.${ext}"
   local output_path="output.${ext}"
   local expected_path="expected.${ext}"
-  (cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; "${REPO_DIR}/main/src/pl/rynkowski/sosh.cljc" pack -i "${input_path}" -o "${output_path}")
+  (
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    "${REPO_DIR}/main/src/pl/rynkowski/sosh.cljc" pack -i "${input_path}" -o "${output_path}"
+  )
   local output_value expected_value
   output_value="$(cat "${REPO_DIR}/test/res/test_suite/${name}/${output_path}")"
   expected_value="$(cat "${REPO_DIR}/test/res/test_suite/${name}/${expected_path}")"
@@ -33,11 +36,20 @@ test_composed_as_expected_absolute() {
 
 test_compare_results_relative() {
   local name=$1
-  (cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; "${REPO_DIR}/main/src/pl/rynkowski/sosh.cljc" pack -i "entry.bash" -o "output.bash")
+  (
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    "${REPO_DIR}/main/src/pl/rynkowski/sosh.cljc" pack -i "entry.bash" -o "output.bash"
+  )
   local res_entry res_bundled res_entry_status res_bundled_status
-  res_entry="$(cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; bash "entry.bash")"
+  res_entry="$(
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    bash "entry.bash"
+  )"
   res_entry_status=$?
-  res_bundled="$(cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; bash "output.bash")"
+  res_bundled="$(
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    bash "output.bash"
+  )"
   res_bundled_status=$?
   [ "${res_entry_status}" -eq "${res_bundled_status}" ]
   [ "${res_entry}" == "${res_bundled}" ]
@@ -47,9 +59,15 @@ test_compare_results_absolute() {
   local name=$1
   "${REPO_DIR}/main/src/pl/rynkowski/sosh.cljc" pack -i "${REPO_DIR}/test/res/test_suite/${name}/entry.bash" -o "${REPO_DIR}/test/res/test_suite/${name}/output.bash"
   local res_entry res_bundled res_entry_status res_bundled_status
-  res_entry="$(cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; bash "entry.bash")"
+  res_entry="$(
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    bash "entry.bash"
+  )"
   res_entry_status=$?
-  res_bundled="$(cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1; bash "output.bash")"
+  res_bundled="$(
+    cd "${REPO_DIR}/test/res/test_suite/${name}" || exit 1
+    bash "output.bash"
+  )"
   res_bundled_status=$?
   [ "${res_entry_status}" -eq "${res_bundled_status}" ]
   [ "${res_entry}" == "${res_bundled}" ]
@@ -110,7 +128,6 @@ test_compare_results_absolute() {
   # cleanup
   rm -rfv "${REPO_DIR}/test/res/test_suite/${name}/lib"
 }
-
 
 @test "5_remote_sourcing_same_repo - composed_as_expected" {
   local name="5_remote_sourcing_same_repo"

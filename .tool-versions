@@ -9,3 +9,7 @@ bats 1.10.0
 # PLUGIN: https://github.com/halcyon/asdf-java
 # OpenJDK: https://openjdk.org/projects/jdk-updates/
 java openjdk-11.0.2
+
+# plugin: https://github.com/luizm/asdf-shfmt
+# releases: https://github.com/mvdan/sh/releases
+shfmt 3.8.0

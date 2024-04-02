@@ -1,14 +1,22 @@
 {:deps {this/repo {:local/root "."}}
 
  :tasks
- {:requires ([babashka.fs :as fs])
+ {:requires ([babashka.fs :as fs]
+             [clojure.string :as str])
+  :init (do (def sosh (fs/path (fs/cwd) "main/src/pl/rynkowski/sosh.cljc")))
 
   deps (print-exec '(clojure "-M:tool/antq -m antq.core") *command-line-args*)
   deps:upgrade (shell "bb deps --upgrade")
 
-  lint (do
-         (shell {:dir "./test/res/test_suite/5_remote_sourcing_same_repo/repo"} (str (fs/path (fs/cwd) "main/src/pl/rynkowski/sosh.cljc")" fetch -i entry.bash"))
-         (shell "@bin/lint.bash"))
+  format:sosh (shell (str sosh " fetch @bin/format.bash"))
+  format {:depends [format:sosh]
+          :task (shell "@bin/format.bash" (str/join " " *command-line-args*))}
+
+  lint:sosh (do (shell (str sosh " fetch ./test/res/test_suite/4_import_remote/entry.bash"))
+                (shell (str sosh " fetch ./test/res/test_suite/5_remote_sourcing_same_repo/repo/entry.bash"))
+                (shell (str sosh " fetch @bin/lint.bash")))
+  lint {:depends [lint:sosh format:sosh]
+        :task (shell "@bin/lint.bash")}
 
   test {:depends [test:bash test:bb test:clj]}
   test:bash (shell "bats ./test/src/test.bats")
