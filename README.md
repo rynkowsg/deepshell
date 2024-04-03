@@ -68,8 +68,11 @@ sosh pack -i ./entry.bash -o ./bundled.bash
 
 **Features**
 - recursive dependency resolution (your script requires A, A requires B, B requires C)
-- ignore with `# sosh: skip` at the end of the line containing `source`
+- command to bundle script and sourced deps, either local or remote, into one file
+- option to ignore `source` line if contains `# sosh: skip` at the end
 - support for BATS files[^bats-disclaimer]
+
+Some aspects are better explained in [CHANGELOG](https://github.com/rynkowsg/sosh/blob/main/CHANGELOG.md#010-2024-03-15) notes to version 0.1.0.
 
 [^bats-disclaimer]: But script paths need to consider they can be called not only by bats, but also by Bash ([example](https://github.com/rynkowsg/sosh/blob/63d85c5/test/res/test_suite/7_bats_import/entry.bats#L6)).
 
