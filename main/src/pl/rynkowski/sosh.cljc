@@ -71,7 +71,8 @@
         resolver-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                            :prefix (str prefix "-resolver.")
                                                            :suffix (str "." ext)}))
-                            (spit (str/join "\n" [(format "source %s >/dev/null" lines-tmp-file)
+                            (spit (str/join "\n" ["set -eo pipefail"
+                                                  (format "source %s >/dev/null" lines-tmp-file)
                                                   (format "printf \"%%s\" %s" path-in-code)])))
         interpreter (resolve-interpreter lines-read)
         cmd (str interpreter " " resolver-tmp-file)
