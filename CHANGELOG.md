@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/rynkowsg/sosh/compare/v0.2.0...HEAD)
 
 - refactor: Expose errors during variable resolution
+- refactor: Show output of sourced file during var resolution for debug
 
 ## [0.2.0](https://github.com/rynkowsg/sosh/compare/v0.1.2...v0.2.0) (2024-04-02)
 

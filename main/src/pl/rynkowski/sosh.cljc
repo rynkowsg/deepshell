@@ -72,7 +72,7 @@
                                                            :prefix (str prefix "-resolver.")
                                                            :suffix (str "." ext)}))
                             (spit (str/join "\n" ["set -eo pipefail"
-                                                  (format "source %s >/dev/null" lines-tmp-file)
+                                                  (format "source %s %s" lines-tmp-file (if debug? ">&2" ">/dev/null"))
                                                   (format "printf \"%%s\" %s" path-in-code)])))
         interpreter (resolve-interpreter lines-read)
         cmd (str interpreter " " resolver-tmp-file)
