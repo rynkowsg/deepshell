@@ -62,11 +62,17 @@
   (when debug? (log {:fn :resolve-path :opts (-> opts (dissoc :lines-read) (assoc :lines-read-count (count lines-read)))}))
   (let [prefix (format "%s.%s" (fs/file-name script-path) (str (System/currentTimeMillis)))
         ext (fs/extension root-path)
+        ;; customize lines-read
+        lines-read' (->> lines-read
+                         ;; comment out sosh fetch lines
+                         (map #(if (str/includes? % "sosh fetch") (format "# %s # skip sosh - recursive execution is pointless, running fetch once is enough," %) %))
+                         ;; todo: now it comments out all global `sosh fetch` lines, but it might be better to comment only these addressing current script file path
+                         #_:->>)
         ;; first create a temp file with the lines read
         lines-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                         :prefix (str prefix "-lines.")
                                                         :suffix (str "." ext)}))
-                         (spit (str/join "\n" lines-read)))
+                         (spit (str/join "\n" lines-read')))
         ;; then create a temp file with the path resolver code
         resolver-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                            :prefix (str prefix "-resolver.")
@@ -74,7 +80,7 @@
                             (spit (str/join "\n" ["set -eo pipefail"
                                                   (format "source %s %s" lines-tmp-file (if debug? ">&2" ">/dev/null"))
                                                   (format "printf \"%%s\" %s" path-in-code)])))
-        interpreter (resolve-interpreter lines-read)
+        interpreter (resolve-interpreter lines-read')
         cmd (str interpreter " " resolver-tmp-file)
         _ (when debug? (log {:fn :resolve-path :cmd cmd}))
         {:keys [exit out] :as res} (shell {:out :string} cmd)]

@@ -4,6 +4,8 @@
 
 - refactor: Expose errors during variable resolution
 - refactor: Show output of sourced file during var resolution for debug
+- fix: Fix unnecessary recursive sosh fetch
+  - e.g. a script that calls `sosh fetch` at the beginning to fetch all deps before sourcing them
 
 ## [0.2.0](https://github.com/rynkowsg/sosh/compare/v0.1.2...v0.2.0) (2024-04-02)
 

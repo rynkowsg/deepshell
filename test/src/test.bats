@@ -165,3 +165,13 @@ test_compare_results_absolute() {
   test_composed_as_expected_relative "7_bats_import" "bats"
   test_composed_as_expected_absolute "7_bats_import" "bats"
 }
+
+@test "8_self_sosh - compare_results" {
+  test_compare_results_relative "8_self_sosh"
+  test_compare_results_absolute "8_self_sosh"
+}
+
+@test "8_self_sosh - composed_as_expected" {
+  test_composed_as_expected_relative "8_self_sosh"
+  test_composed_as_expected_absolute "8_self_sosh"
+}
