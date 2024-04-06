@@ -66,7 +66,7 @@
         lines-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                         :prefix (str prefix "-lines.")
                                                         :suffix (str "." ext)}))
-                             (spit (str/join "\n" lines-read)))
+                         (spit (str/join "\n" lines-read)))
         ;; then create a temp file with the path resolver code
         resolver-tmp-file (doto (str (fs/create-temp-file {:dir (fs/parent root-path)
                                                            :prefix (str prefix "-resolver.")
