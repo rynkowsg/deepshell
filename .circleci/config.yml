@@ -40,6 +40,7 @@ jobs:
             java --version
             shellcheck --version
             shfmt --version
+      - rynkowsg/install_sosh: {version: "<<pipeline.git.revision>>"}
       - save_cache:
           name: asdf - save cache (partial)
           key: asdf-{{ checksum ".tool-versions" }}
